@@ -1,0 +1,78 @@
+References:
+
+https://en.wikipedia.org/wiki/Elliptic-curve_cryptography
+
+
+https://en.wikipedia.org/wiki/Elliptic_curve_point_multiplication
+
+
+https://www.allaboutcircuits.com/technical-articles/elliptic-curve-cryptography-in-embedded-systems
+
+
+https://csrc.nist.gov/Projects/Elliptic-Curve-Cryptography
+
+
+https://www.keycdn.com/support/elliptic-curve-cryptography
+
+
+https://community.dur.ac.uk/cs.systems/password/projects/student/index.php
+
+
+https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.394.3037&rep=rep1&type=pdf
+
+Guide to Elliptic Curve Cryptography. Extensive explanation of ECC.
+
+https://www.math.tamu.edu/~rojas/eccinpractice.pdf
+https://www.microsoft.com/en-us/research/wp-content/uploads/2013/11/734.pdf
+
+A review of elliptic curve cryptography as it is used in practice today, in order to reveal unique mistakes and vulnerabilities that arise in implementations of ECC. (2013)
+Studies four popular protocols that make use of ECC: Bitcoin, secure shell (SSH), transport layer security (TLS), and the Austrian e-ID card.
+
+https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.132.3788&rep=rep1&type=pdf
+
+A summary of elliptic curve cryptography.
+
+https://arstechnica.com/information-technology/2013/10/a-relatively-easy-to-understand-primer-on-elliptic-curve-cryptography
+
+
+https://www.youtube.com/watch?v=dCvB-mhkT0w
+
+
+https://www.youtube.com/watch?v=NF1pwjL9-DE
+
+Overview and explanation of elliptic curve cryptography by Dr Mike Pound, University of Nottingham Computer Science lecturer and research fellow.
+
+https://www.youtube.com/watch?v=nybVFJVXbww
+
+A discussion of the suspicion about The Dual Elliptic Curve Deterministic Random Bit Generator with Dr Mike Pound.
+
+https://safecurves.cr.yp.to/
+
+Daniel J. Bernstein and Tanja Lange. SafeCurves: choosing safe curves for elliptic-curve cryptography. https://safecurves.cr.yp.to, accessed 8 October 2020.
+The SafeCurves web site reports security assessments of various specific curves.
+The SafeCurves requirements are broken down into: basic parameter requirements (field, equation, base point); ECDLP security requirements (rho, transfer, discriminant, rigidity); and ECC security requirements beyond ECDLP security (ladder, twist, completeness, indistinguishability).
+
+https://cr.yp.to/ecdh/curve25519-20060209.pdf
+
+This paper explains the design and implementation of a high-security elliptic-curve-Diffie-Hellman function, achieving record-setting speeds (832457 Pentium III cycles)
+An introduction to Curve25519 (9 February 2006 - Daniel J. Bernstein).
+
+https://andrea.corbellini.name/2015/05/17/elliptic-curve-cryptography-a-gentle-introduction/
+
+
+https://andrea.corbellini.name/2015/05/23/elliptic-curve-cryptography-finite-fields-and-discrete-logarithms/
+
+
+https://andrea.corbellini.name/2015/05/30/elliptic-curve-cryptography-ecdh-and-ecdsa/
+
+
+https://andrea.corbellini.name/2015/06/08/elliptic-curve-cryptography-breaking-security-and-a-comparison-with-rsa/
+
+
+https://www.johannes-bauer.com/compsci/ecc/
+
+
+https://www.desmos.com/calculator/ialhd71we3
+
+
+https://www.youtube.com/watch?v=4oCfeV_qylw
