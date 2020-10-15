@@ -11,3 +11,9 @@ Explore generation of curves and suitable initial points.
 Explore attacks on ECC and compare with the security of RSA at similar key sizes.
 
 Implement and test calculations secure against timing attacks (e.g. Montgomery multiplication)
+
+## Anticipated outcomes
+
+A working elliptic curve crypto system
+
+Empirical testing of the system
