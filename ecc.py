@@ -28,15 +28,15 @@
 
 # for literature review, have section on attacks, such as timing
 
-def binary(num):
-    x = 1000 # max index of number input, i.e. 2^x
+def binary(num): # convert denary number to binary
+    x = 600 # max index of number input, i.e. 2^x
     out = []
     for i in range(x+1):
       if num >= 2**x:
-        out.insert(0,1)
+        out.insert(0,1) # flipped so least significant bit first
         num -= 2**x
       else:
-        out.insert(0,0)
+        out.insert(0,0) # flipped so least significant bit first
       x -= 1
     return out
 
@@ -56,9 +56,9 @@ def K(start,k):
     bina = binary(k)
     for i in range(len(bina)-bina.index(1)-1):
         points.append(move(points[-1][0],points[-1][1],points[-1][0],points[-1][1])) # double
-    index = bina.index(1)
-    out = points[index] # start with largest multiple of g
-    for i in range(index+1,len(bina)-1): # count down from the largest multiple
+    index = bina.index(1) # find first occurence of 1 in the binary representation
+    out = points[index] # start with smallest multiple of g
+    for i in range(index+1,len(bina)-1): # count up from the smallest multiple
         if bina[i] == 1:
             out = move(out[0],out[1],points[i][0],points[i][1])
     return out
