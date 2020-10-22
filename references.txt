@@ -32,7 +32,6 @@ This paper discusses analogs based on elliptic curves over finite fields of publ
 This paper is useful for the history of ECC.
 
 5.
-https://cse.iitk.ac.in/users/nitin/courses/WS2010-ref2.pdf
 https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.206.1573&rep=rep1&type=pdf
 
 The State of Elliptic Curve Cryptography (Neal Koblitz, Alfred Menezes, Scott Vanstone, 2000) (Cited by 777)
@@ -48,13 +47,20 @@ The focus on software implementations of ECC, including examples, in this paper 
 
 7.
 https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.149.3368&rep=rep1&type=pdf
-https://www.princeton.edu/~rblee/ELE572Papers/ECCpapers/SUN_ECC_SSLperformance.pdf
 
 Performance Analysis of Elliptic Curve Cryptography for SSL (Vipul Gupta, Sumit Gupta, Sheueling Chang, 2002) (Cited by 249)
 This paper presents a first estimate of the performance improvements that can be expected in SSL (Secure Socket Layer), the dominant security protocol on the Web at the time, by adding ECC support.
 This paper is outdated since SSL is now a deprecated cryptographic protocol.
 
 8.
+https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.15.6932&rep=rep1&type=pdf
+
+An End-to-End Systems Approach to Elliptic Curve Cryptography (Nils Gura, Sheueling Chang Shantz, Hans Eberle, Sumit Gupta, Vipul Gupta, Daniel Finchelstein, Edouard Goupy, Douglas Stebila, 2002) (Cited by 194)
+The creators of this paper designed a programmable hardware accelerator to speed up point multiplication for elliptic curves over binary polynomial fields GF(2m).
+They also integrated ECC into OpenSSL and tested it with the Apache web server and open-source web browsers.
+This paper is outdated, due to both the 2004 Gura N. et al. paper which finds that hardware acceleration is not needed, and the fact the SSL is now deprecated.
+
+9.
 https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.116.215&rep=rep1&type=pdf
 
 Elliptic Curve cryptosystem and its applications (G.V.S. Raju and Rehan Akbani, 2003) (Cited by 65)
@@ -62,31 +68,10 @@ The goal of this research is to develop a basis for utilizing efficient encrypti
 A comparative study of ECC with RSA is made in terms of key size, computational power, size of data files and encrypted files.
 This conference paper is very brief and not particularly useful, due to the lack of detail.
 
-9.
-https://doi.org/10.1007/3-540-36400-5_26
-https://link.springer.com/chapter/10.1007%2F3-540-36400-5_26
-
-An End-to-End Systems Approach to Elliptic Curve Cryptography (Nils Gura, Sheueling Chang Shantz, Hans Eberle, Sumit Gupta, Vipul Gupta, Daniel Finchelstein, Edouard Goupy, Douglas Stebila, 2003) (Cited by 194)
-The creators of this paper designed a programmable hardware accelerator to speed up point multiplication for elliptic curves over binary polynomial fields GF(2m).
-They also integrated ECC into OpenSSL and tested it with the Apache web server and open-source web browsers.
-This paper is outdated, due to both the 2004 Gura N. et al. paper which finds that hardware acceleration is not needed, and the fact the SSL is now deprecated.
-
 10.
-https://doi.org/10.1007/978-3-540-28632-5_9
-https://link.springer.com/chapter/10.1007%2F978-3-540-28632-5_9
-
-Comparing Elliptic Curve Cryptography and RSA on 8-bit CPUs (Nils Gura, Arun Patel, Arvinderpal Wander, Hans Eberle, Sheueling Chang Shantz, 2004) (Cited by 1442)
-The implementation and analysis in this paper leads to three observations:
-1. Public-key cryptography is viable on small devices without hardware acceleration.
-2. The relative performance advantage of ECC point multiplication over RSA modular exponentiation increases with the decrease in processor word size and the increase in key size.
-3. Elliptic curves over fields using pseudo-Mersenne primes as standardized by NIST and SECG allow for high performance implementations and show no performance disadvantage over optimal extension fields or prime fields selected specifically for a particular processor architecture.
-Observation 2 from this paper is the most relevant for the purposes of my project in comparing ECC to RSA.
-
-11.
-http://fog.misty.com/perry/ccs/ec/KF/Guide_to_Elliptic_Curve_Cryptography.pdf
 https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.394.3037&rep=rep1&type=pdf
 
-Guide to Elliptic Curve Cryptography. (Darrel R. Hankerson, Alfred J. Menezes, Scott A. Vanstone, 2004) (Cited by 3928)
+Guide to Elliptic Curve Cryptography (Darrel R. Hankerson, Alfred J. Menezes, Scott A. Vanstone, 2003) (Cited by 3928)
 This book contains the following sections:
 Chapter 1 is an introduction and overview.
 Chapter 2 has a strong focus on efficient methods for finite field arithmetic.
@@ -94,6 +79,18 @@ Chapter 3 looks at efficient methods for elliptic curve arithmetic.
 Chapter 4 surveys the known attacks on the ECDLP, and describes the generation and validation of domain parameters and key pairs, and selected elliptic curve protocols for digital signature, public key encryption and key establishment.
 Chapter 5 details selected aspects of efficient implementations in software and hardware, and also gives an introduction to side-channel attacks and their countermeasures.
 This book is extremely useful, it contains extensive descriptions and explanations of many aspects of ECC.
+
+11.
+https://core.ac.uk/download/pdf/191318972.pdf
+https://www.iacr.org/archive/ches2004/31560117/31560117.pdf
+https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.69.2593&rep=rep1&type=pdf
+
+Comparing Elliptic Curve Cryptography and RSA on 8-bit CPUs (Nils Gura, Arun Patel, Arvinderpal Wander, Hans Eberle, Sheueling Chang Shantz, 2004) (Cited by 1442)
+The implementation and analysis in this paper leads to three observations:
+1. Public-key cryptography is viable on small devices without hardware acceleration.
+2. The relative performance advantage of ECC point multiplication over RSA modular exponentiation increases with the decrease in processor word size and the increase in key size.
+3. Elliptic curves over fields using pseudo-Mersenne primes as standardized by NIST and SECG allow for high performance implementations and show no performance disadvantage over optimal extension fields or prime fields selected specifically for a particular processor architecture.
+Select parts of this paper are particularly useful for the purposes of my project, such as observation two, comparing ECC to RSA.
 
 12.
 https://core.ac.uk/download/pdf/192725728.pdf
@@ -112,6 +109,8 @@ This paper is very useful for implementing TLS handshakes, and ECDSA.
 
 14.
 https://cr.yp.to/ecdh/curve25519-20060209.pdf
+https://core.ac.uk/download/pdf/191282977.pdf
+https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.101.4634&rep=rep1&type=pdf
 
 Curve25519: new Diffie-Hellman speed records (Daniel J. Bernstein, 2006)
 This paper introduces and analyzes Curve25519, a state-of-the-art elliptic-curve-Diffie-Hellman function suitable for a wide variety of cryptographic applications.
@@ -127,6 +126,7 @@ This is an extremely useful resource which shows how ECC works, it starts at a v
 
 16.
 https://www.researchgate.net/profile/Ralf_Patz/publication/4254793_Implementation_of_Elliptic-Curve_Cryptography_on_Mobile_Healthcare_Devices/links/5c25fac2299bf12be39e2f4d/Implementation-of-Elliptic-Curve-Cryptography-on-Mobile-Healthcare-Devices.pdf
+
 Implementation of Elliptic-Curve Cryptography on Mobile Healthcare Devices (K. Malhotra, S. Gardner, R. Patz, 2007) (Cited by 49)
 This paper describes the implementation of a cryptographic algorithm based on elliptic curves on an embedded mobile device useful for healthcare purposes (a PDA).
 The paper formulates a secure protocol which comprises of Signature, Encryption and Authentication (SEA) as a combined ingredient of secure remote patient monitoring application using mobile devices.
@@ -141,7 +141,7 @@ This is quite a basic, high level description of the algorithm and does not go i
 Not particularly useful due to the lack of detail and specifics.
 
 18.
-http://www.math.ens.fr/~benoist/refs/Silverman.pdf
+https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.295.7906&rep=rep1&type=pdf
 
 The Arithmetic of Elliptic Curves, 2nd Edition (Joseph H. Silverman, 2009) (Cited by 7699)
 The first edition of this book from 1986 became a standard text and reference in the subject, and this second edition is an update to and expansion on the original.
@@ -162,7 +162,7 @@ Much of this book is beyond the scope of this project, so it is not particularly
 19.
 https://www.secg.org/sec1-v2.pdf
 
-Standards for Efficient Cryptography (SECG), SEC 1: Elliptic Curve Cryptography, Version 2.0 (Certicom Research, 2009)
+Standards for Efficient Cryptography (SECG), SEC 1: Elliptic Curve Cryptography, Version 2.0 (Daniel R. L. Brown, Certicom Research, 2009) (Cited by 35)
 This document specifies public-key cryptographic schemes based on elliptic curve cryptography (ECC). In particular is specifies:
 Signature schemes
 Encryption and key transport schemes
@@ -173,8 +173,8 @@ This document is very useful since it completely specifies efficient, well-estab
 20.
 https://fahrplan.events.ccc.de/congress/2010/Fahrplan/events/4087.en.html
 
-Console Hacking 2010
-A lecture at the 27th Chaos Communication Congress about the 2010 Sony Playstation 3 console hacks, which relates to ECC.
+Console Hacking 2010: PS3 Epic Fail (Fail 0verflow, Ben Byer, Sven Peter, 2010)
+This is a lecture given at the 27th Chaos Communication Congress, about the 2010 Sony Playstation 3 console hacks, which relates to ECC. Sony did not use sufficient randomness in their generation of the private variable used for signature generation, allowing attackers to obtain their private key. This allows anyone to authenticate their code with a Sony digital signature, giving it the appearance of code written by Sony.
 This lecture is very useful for details about real-world attacks on ECC, it discusses a very well-known and fairly recent breaking of real-world ECC.
 
 21.
@@ -186,10 +186,11 @@ This paper proposes a new parallel algorithm for efficient elliptic curve point 
 This paper is useful for very specific details about the mathematical implementation of ECC, which may be outside the scope of this project.
 
 22.
-https://www.math.tamu.edu/~rojas/eccinpractice.pdf
+https://core.ac.uk/download/pdf/209216068.pdf
+https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.433.3427&rep=rep1&type=pdf
 https://www.microsoft.com/en-us/research/wp-content/uploads/2013/11/734.pdf
 
-Elliptic Curve Cryptography in Practice (Joppe W. Bos, J. Alex Halderman, Nadia Heninger, Jonathan Moore, Michael Naehrig, Eric Wustrow, 2013) (Cited by 228)
+Elliptic Curve Cryptography in Practice (Joppe W. Bos, J. Alex Halderman, Nadia Heninger, Jonathan Moore, Michael Naehrig, Eric Wustrow, 2013) (Cited by 229)
 This paper performs a review of elliptic curve cryptography, as it is used in practice today, in order to reveal unique mistakes and vulnerabilities that arise in implementations of ECC.
 Studies four popular protocols that make use of ECC:
 Bitcoin
