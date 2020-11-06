@@ -1,27 +1,15 @@
 
-# client is invokable as follows:
-# python client.py serverip port
-# e.g.: python client.py 127.0.0.1 12000
-# would cause the client to attempt to connect
-# to a server already listening
-# on 127.0.0.1 (the local system) port number 12000
+# run as follows:
+# python -m Pyro4.naming
+# python server.py
+# python client.py
 
-import time
-
-import sys
-# used to take arguments from the command line
-import os.path
-from os import path
-# used to check if log file already exists or not
-from socket import socket, AF_INET, SOCK_STREAM
-# used to create TCP sockets
-from datetime import datetime
-# used for log file entries
-import pickle
-# enables the sending and receiving of
-# data types other than strings (arrays in this case)
-import select
-# used for request timeout checking
+import random # built in
+import sympy
+import Pyro4
+from Cryptodome.Cipher import AES
+import base64 # built in
+import hashlib
 
 def binary(num): # convert denary number to binary
     out = []
@@ -72,69 +60,139 @@ p = 2**255 - 19
 a,b = montgomery(486662,1)
 g = (9,14781619447589544791020593568409986887264606134616475288964881837755586237401)
 
-def sendKey():
-    clientSocket = socket(AF_INET, SOCK_STREAM)
-    # create socket
-    clientSocket.connect((serverIP, serverPort))
-    # connect to server
-    clientSocket.setblocking(False)
-    # make sure socket is not blocking
-    clientSocket.send(pickle.dumps(['SET',name, publicKey]))
-    # send data to server
-    # using array to send multiple arguments
-    clientSocket.close()
-    # close socket
-    print('Sent Public Key to server')
 
-def getKeys():
-    clientSocket = socket(AF_INET, SOCK_STREAM)
-    # create socket
-    clientSocket.connect((serverIP, serverPort))
-    # connect to server
-    clientSocket.setblocking(False)
-    # make sure socket is not blocking
-    clientSocket.send(pickle.dumps(['GET']))
-    # send data to server
-    # using array to send multiple arguments
-    ready = select.select([clientSocket], [], [], 10)
-    if ready[0]:
-        # data received before timeout
-        messages = pickle.loads(clientSocket.recv(4096))
-        # receive up to 4096 bytes from the socket
+def newContact():
+    publicKeys = server.sendKeys()
+    if publicKeys == {} or len(publicKeys) == 1:
+        print('Nobody is currently available')
     else:
-        # Timeout expired
-        # Response not received in 10 seconds
-        print('GET_MESSAGES failed!')
-        return 'ERROR'
-    clientSocket.close()
+        print('You can establish a key with:')
+        i = 1
+        people = []
+        for x in publicKeys:
+            if x != name: # so you can't send a message to yourself
+                people.append(x)
+                print('{}. {}'.format(i,x))
+                i += 1
+        keyChoice = '0'
+        while int(keyChoice) not in range(1,len(people)+1):
+            keyChoice = input('Choose a person > ')
+            try:
+                int(keyChoice) # check for bad input
+            except:
+                keyChoice = '0'
+        person = people[int(keyChoice)-1]
+        key = K(publicKeys[person],privateKey)[0] # only use x-coordinate for key
+        keys[person] = key
+        print('Your shared key with {} is {}'.format(person,key))
 
-    print(messages)
-    if otherName in messages:
-        key = K(messages[otherName],k)
-        print('Shared Key:',key[0])
-        return True
+def viewContacts():
+    if keys == {}:
+        print('You don\'t have any contacts yet')
     else:
-        return False
+        if len(keys) == 1:
+            print('You have {} contact:'.format(len(keys)))
+        else:
+            print('You have {} contacts:'.format(len(keys)))
+        for i in keys:
+            print(i)
 
+def sendMessage():
+    if keys == {}:
+        print('You need to add a contact first')
+    else:
+        print('You can send a message to:')
+        i = 1
+        contacts = []
+        for x in keys:
+            contacts.append(x)
+            print('{}. {}'.format(i,x))
+            i += 1
+        keyChoice = '0'
+        while int(keyChoice) not in range(1,len(contacts)+1):
+            keyChoice = input('Choose a person > ')
+            try:
+                int(keyChoice) # check for bad input
+            except:
+                keyChoice = '0'
+        recipient = contacts[int(keyChoice)-1]
+        message = input('What would you like to say to {}? > '.format(recipient))
+        key = hashlib.sha256(int.to_bytes(keys[recipient],32,'big')).digest() # convert ecc key to 32 bytes
+        cipher = AES.new(key,AES.MODE_EAX)
+        nonce = cipher.nonce
+        ciphertext,tag = cipher.encrypt_and_digest(message.encode('utf8'))
+        server.receiveMessage(recipient,name,nonce,ciphertext,tag) # encrypt here
+
+def checkMessages():
+    messages = server.checkMessages(name)
+    if messages == []:
+        print('There are no messages for you {}'.format(name))
+    else:
+        if len(messages) == 1:
+            print('You have {} message:'.format(len(messages)))
+        else:
+            print('You have {} messages:'.format(len(messages)))
+        for i in messages:
+            sender = i[1]
+            if sender not in keys:
+                print('You don\'t have a key with {} yet'.format(sender))
+            else:
+                nonce = base64.b64decode(i[2]['data']) # decrypt here
+                ciphertext = base64.b64decode(i[3]['data'])
+                tag = base64.b64decode(i[4]['data'])
+                key = hashlib.sha256(int.to_bytes(keys[sender],32,'big')).digest() # convert ecc key to 32 bytes
+                cipher = AES.new(key,AES.MODE_EAX,nonce=nonce)
+                try:
+                    plaintext = cipher.decrypt(ciphertext).decode()
+                    cipher.verify(tag)
+                    print('{} says {}'.format(sender,plaintext))
+                    server.deleteMessage(i[0])
+                except ValueError:
+                    print('Your key is incorrect')
 
 if __name__ == "__main__":
-    # when program is run directly
-    serverIP = sys.argv[1]
-    serverPort = int(sys.argv[2])
-    name = sys.argv[3]
-    # take command line arguments
-    otherName = 'Bob' if name == 'Alice' else 'Alice'
-    # Change private keys here
-    #####################################
-    # private keys  2 <= ka,kb <= p-2
-    k = 2**210-1 if name == 'Alice' else 2**200-1 # private key
-    #####################################
-    publicKey = K(g,k)
-    boards = sendKey()
-    other = False
-    while not other:
-        other = getKeys()
-        if not other:
-            time.sleep(5)
+    server = Pyro4.Proxy("PYRONAME:server")
+    name = ''
+    while name == '':
+        name = input('What is your name? > ').strip()
+    keys = {}
+    privateKey = 4
+    while not sympy.isprime(privateKey): # make sure that private key is prime
+        privateKey = 2**random.randint(160,252)-random.randint(0,1000) # prime order l approx = 2^252
+    publicKey = K(g,privateKey)
+    server.receiveKey(name,publicKey)
+    
+    while True:
+
+        print('''
+What would you like to do {}?
+1. Add a new contact
+2. View your contacts
+3. Send a message
+4. Check my messages
+        '''.format(name))
+
+        validChoice = False
+        while not validChoice:
+            validChoice = True
+            choice = input('Your choice > ')
+            if choice == '1':
+                newContact()
+            elif choice == '2':
+                viewContacts()
+            elif choice == '3':
+                sendMessage()
+            elif choice == '4':
+                checkMessages()
+            else:
+                validChoice = False
 
 # implement ephemeral Diffie Hellman
+# cofactor h used to calculate P = h(my private)(other public)
+# provides efficient resistance to attacks such as small subgroup attacks. see SEC 1 and Lopez 200 paper
+# cofactor h = #E(Fq)/n , number of points on the curve?
+# 2^3 for Curve25519 https://safecurves.cr.yp.to/ladder.html
+
+# for symmetric encryption use AES
+# https://pycryptodome.readthedocs.io/en/latest/src/cipher/aes.html
+# https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.37.2771&rep=rep1&type=pdf for EC protocol
