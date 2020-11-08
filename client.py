@@ -158,7 +158,13 @@ if __name__ == "__main__":
     keys = {}
     privateKey = 4
     while not sympy.isprime(privateKey): # make sure that private key is prime
-        privateKey = 2**random.randint(160,252)-random.randint(0,1000) # prime order l approx = 2^252
+        privateKey = random.randint(2**250,2**252)-random.randint(0,1000) # prime order l approx = 2^252
+    # change this to rand(0,2**252) or 2**251,2**252, half of total here
+    # check how large need key, and what properties it needs to have, coprime with curve parameters
+    # random vs secure random, OS generated random number
+    # obviously don't use random.randint properly
+    # secrets library or OS library
+    # use user delay
     publicKey = K(g,privateKey)
     server.receiveKey(name,publicKey)
     
