@@ -4,12 +4,12 @@
 # python server.py
 # python client.py
 
-import random # built in
-import sympy
+import sympy # used isprime() function
 import Pyro4
 from Cryptodome.Cipher import AES
 import base64 # built in
-import hashlib
+import hashlib # built in
+import secrets # built in
 
 def binary(num): # convert denary number to binary
     out = []
@@ -53,12 +53,14 @@ def edwards(d): # convert from edwards to short weierstrass
     # a = 2(1 + d)/(1 - d) and b = 4/(1 - d)
     return montgomery(2*(1+d)*pow(1-d,p-2,p),4*pow(1-d,p-2,p))
 
-# public parameters: p,a,b,g
+# public parameters: p,a,b,g,l,h
 
 # Curve25519
-p = 2**255 - 19
-a,b = montgomery(486662,1)
-g = (9,14781619447589544791020593568409986887264606134616475288964881837755586237401)
+p = 2**255 - 19 # prime, size of finite field
+a,b = montgomery(486662,1) # coefficients of curve equation
+g = (9,14781619447589544791020593568409986887264606134616475288964881837755586237401) # base point
+n = 2**252 + 27742317777372353535851937790883648493 # (prime) order l
+h = 2**3 # cofactor
 
 
 def newContact():
@@ -156,15 +158,7 @@ if __name__ == "__main__":
     while name == '':
         name = input('What is your name? > ').strip()
     keys = {}
-    privateKey = 4
-    while not sympy.isprime(privateKey): # make sure that private key is prime
-        privateKey = random.randint(2**250,2**252)-random.randint(0,1000) # prime order l approx = 2^252
-    # change this to rand(0,2**252) or 2**251,2**252, half of total here
-    # check how large need key, and what properties it needs to have, coprime with curve parameters
-    # random vs secure random, OS generated random number
-    # obviously don't use random.randint properly
-    # secrets library or OS library
-    # use user delay
+    privateKey = secrets.SystemRandom().randrange(1,n-1) # {1,...,n-1} where n is the order of the subgroup
     publicKey = K(g,privateKey)
     server.receiveKey(name,publicKey)
     
@@ -197,8 +191,17 @@ What would you like to do {}?
 # cofactor h used to calculate P = h(my private)(other public)
 # provides efficient resistance to attacks such as small subgroup attacks. see SEC 1 and Lopez 200 paper
 # cofactor h = #E(Fq)/n , number of points on the curve?
-# 2^3 for Curve25519 https://safecurves.cr.yp.to/ladder.html
 
-# for symmetric encryption use AES
-# https://pycryptodome.readthedocs.io/en/latest/src/cipher/aes.html
-# https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.37.2771&rep=rep1&type=pdf for EC protocol
+# use user delay in future development?
+# Design your own random number algorithm based on e.g. user delay on inputs.
+# How many random bits do you need? How long will it take.
+
+# comment on small numbers for private key
+
+# sign two files with same key and same k, then calculate private key and sign third document with it
+# serialise file, break into chunks of 251 bits
+# hashlib has useful functions for hashing and serialising files
+
+# mention in final paper that I initially used random module
+
+# also look at what specifically the secrets module uses to generate randomness
