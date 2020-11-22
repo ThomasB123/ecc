@@ -11,47 +11,38 @@ import base64 # built in
 import hashlib # built in
 import secrets # built in
 
-def binary(num): # convert denary number to binary
-    out = []
-    while num > 0:
-        if num % 2 == 1:
-            num -= 1
-            out.append(1)
-        else:
-            out.append(0)
-        num /= 2
-    return out
-
 def move(xa,ya,xb,yb):
-    if [xa,ya] == [xb,yb]:
-        # doubling a point
-        m = ((3*xa**2+a)*inverse(p,2*ya)) # (3x^2+a)/(2y)
-    else:
-        # adding two points
-        m = ((yb-ya)*inverse(p,xb-xa)) # (yb-ya)/(xb-xa)
-    xd = (m**2 -xa-xb)
-    yd = (m*(xa-xd) - ya)
-    return xd%p,-yd%p
+    if xa is None:
+        # 0 + point2 = point2
+        return xb,yb
+    if xb is None:
+        # point1 + 0 = point1
+        return xa,ya
+    if form == 0: # Short Weierstrass
+        if [xa,ya] == [xb,yb]: # doubling a point
+            m = ((3*xa**2+a)*inverse(p,2*ya)) # (3x^2+a)/(2y)
+        else: # adding two points
+            m = ((yb-ya)*inverse(p,xb-xa)) # (yb-ya)/(xb-xa)
+        xd = (m**2 -xa-xb)
+    elif form == 1: # Montgomery
+        if [xa,ya] == [xb,yb]: # doubling a point
+            m = (3*xa**2+2*a*xa+1)*inverse(p,2*b*ya) # (3x^2+2ax+1)/(2by)
+        else: # adding two points
+            m = (yb-ya)*inverse(p,xb-xa) # (yb-ya)/(xb-xa)
+        xd = b*m**2 -a-xa-xb
+    yd = m*(xa-xd) - ya # flipped in x axis here
+    return xd%p,yd%p
 
-def K(start,k):
-    points = [start]
-    bina = binary(k)
-    for i in range(len(bina)):#-bina.index(1)):
-        points.append(move(points[-1][0],points[-1][1],points[-1][0],points[-1][1])) # double
-    index = bina.index(1) # find first occurence of 1 in the binary representation
-    out = points[index] # start with smallest multiple of g
-    for i in range(index+1,len(bina)): # count up from the smallest multiple
-        if bina[i] == 1:
-            out = move(out[0],out[1],points[i][0],points[i][1])
-    return out
-
-def montgomery(a,b): # convert from montgomery to short weierstrass
-    # a = (3 - a^2)/(3b^2) and b = (2a^3 - 9a)/(27b^3)
-    return (3-a**2)*inverse(p,3*b**2),(2*a**3-9*a)*inverse(p,27*b**3)
-
-def edwards(d): # convert from edwards to short weierstrass
-    # a = 2(1 + d)/(1 - d) and b = 4/(1 - d)
-    return montgomery(2*(1+d)*inverse(p,1-d),4*inverse(p,1-d))
+def K(start,k): # calculare k*start
+    # k is integer and start is point
+    result = (None,None)
+    addend = start
+    while k:
+        if k & 1:
+            result = move(result[0],result[1],addend[0],addend[1]) # add
+        addend = move(addend[0],addend[1],addend[0],addend[1]) # double
+        k >>= 1
+    return result
 
 def inverse(a,b):
     # find b^{-1} mod a
@@ -162,11 +153,12 @@ def checkMessages():
 def sendSignature():
     k = generator.randrange(1,n-1) # select random integer k in interval [1,n-1]
     r = K(g,k)[0] % n # compute x coordinate of kg mod n (g is base point), if r = 0, generate new k
-    message = 'test'
+    message = 'Hello!'
     encoded = message.encode('utf8')
-    hashed = hashlib.sha256(encoded)
+    hashed = hashlib.sha512(encoded)
     integer = int.from_bytes(hashed.digest(),'big')
-    e = integer #% n # hash of message. truncated?
+    e = integer >> (integer.bit_length() - n.bit_length())
+    #e = (integer % n) //10# hash of message. truncated?
     print('e=hash(m):\n',e)
     # compute k^-1 mod n
     print('k*k^-1',inverse(n,k)*k%n) # extended euclidian algorithm, check that k/k = 1
@@ -215,11 +207,12 @@ def checkSignature():
         publicKey = publicKeys[person] # obtain A's public key Q
         # verify that r and s are integers in interval [1,n-1]
         w = inverse(n,s) # compute w = s^-1 mod n
-        message = 'test'
+        message = 'Hello!'
         encoded = message.encode('utf8')
-        hashed = hashlib.sha256(encoded)
+        hashed = hashlib.sha512(encoded)
         integer = int.from_bytes(hashed.digest(),'big')
-        e = integer #% n# compute hash of message h(m)
+        e = integer >> (integer.bit_length() - n.bit_length()) # discard righmost bits to truncate hash
+        #e = (integer % n) // 10# compute hash of message h(m)
         print('e=hash(m):\n',e)
         u1 = e*w % n # compute u1 = h(m)w mod n
         u2 = r*w % n # compute u2 = rw mod n
@@ -230,17 +223,34 @@ def checkSignature():
         print('v=(e/s)G+(r/s)key:\n',v)
         print('r:\n',r)
         print('v == r ?:',v==r)
+        if v == r:
+            print('Signature Accepted!')
+        else:
+            print('Signature Error')
         return v == r # accept signature iff v = r
 
 if __name__ == "__main__":
     # public parameters: p,a,b,g,n,h
 
     # Curve25519
+    # form = {0:'Short Weierstrass', 1:'Montgomery', 2:'Edwards'}
+    form = 1 # by^2 = x^3 + ax^2 + x
     p = 2**255 - 19 # prime, size of finite field
-    a,b = montgomery(486662,1) # coefficients of curve equation
+    a = 486662 # coefficients of curve
+    b = 1 # coefficients of curve
     g = (9,14781619447589544791020593568409986887264606134616475288964881837755586237401) # base point
     n = 2**252 + 27742317777372353535851937790883648493 # (prime) order l
     h = 2**3 # cofactor
+    '''
+    # secp256k1
+    form = 0 # y^2 = x^3 + ax + b
+    p = 2**256 - 2**32 - 977
+    a = 0
+    b = 7
+    g = (55066263022277343669578718895168534326250603453777594175500187360389116729240,32670510020758816978083085130507043184471273380659243275938904335757337482424)
+    n = 2**256 - 432420386565659656852420866394968145599
+    h = 1
+    '''
     server = Pyro4.Proxy("PYRONAME:server")
     name = ''
     while name == '':
