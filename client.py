@@ -25,13 +25,13 @@ def binary(num): # convert denary number to binary
 def move(xa,ya,xb,yb):
     if [xa,ya] == [xb,yb]:
         # doubling a point
-        m = ((3*xa**2+a)*pow(2*ya,p-2,p)) % p # (3x^2+a)/(2y) % p
+        m = ((3*xa**2+a)*inverse(p,2*ya)) # (3x^2+a)/(2y)
     else:
         # adding two points
-        m = ((yb-ya)*pow(xb-xa,p-2,p)) % p # (yb-ya)/(xb-xa) % p
-    xd = (m**2 -xa-xb) % p
-    yd = (m*(xa-xd) - ya) % p
-    return xd,yd
+        m = ((yb-ya)*inverse(p,xb-xa)) # (yb-ya)/(xb-xa)
+    xd = (m**2 -xa-xb)
+    yd = (m*(xa-xd) - ya)
+    return xd%p,-yd%p
 
 def K(start,k):
     points = [start]
@@ -47,21 +47,28 @@ def K(start,k):
 
 def montgomery(a,b): # convert from montgomery to short weierstrass
     # a = (3 - a^2)/(3b^2) and b = (2a^3 - 9a)/(27b^3)
-    return (3-a**2)*pow(3*b**2,p-2,p),(2*a**3-9*a)*pow(27*b**3,p-2,p)
+    return (3-a**2)*inverse(p,3*b**2),(2*a**3-9*a)*inverse(p,27*b**3)
 
 def edwards(d): # convert from edwards to short weierstrass
     # a = 2(1 + d)/(1 - d) and b = 4/(1 - d)
-    return montgomery(2*(1+d)*pow(1-d,p-2,p),4*pow(1-d,p-2,p))
+    return montgomery(2*(1+d)*inverse(p,1-d),4*inverse(p,1-d))
 
-# public parameters: p,a,b,g,l,h
-
-# Curve25519
-p = 2**255 - 19 # prime, size of finite field
-a,b = montgomery(486662,1) # coefficients of curve equation
-g = (9,14781619447589544791020593568409986887264606134616475288964881837755586237401) # base point
-n = 2**252 + 27742317777372353535851937790883648493 # (prime) order l
-h = 2**3 # cofactor
-
+def inverse(a,b):
+    # find b^{-1} mod a
+    if b < 0:
+        return a - inverse(a,-b)
+    r = {-1:a,0:b}
+    s = {-1:1,0:0}
+    t = {-1:0,0:1}
+    q = {}
+    i = 0
+    while r[i] != 0:
+        i += 1
+        r[i] = r[i-2]%r[i-1]
+        q[i] = r[i-2]//r[i-1]
+        s[i] = s[i-2]-q[i]*s[i-1]
+        t[i] = t[i-2]-q[i]*t[i-1]
+    return t[i-1]%a
 
 def newContact():
     publicKeys = server.sendKeys()
@@ -84,29 +91,29 @@ def newContact():
             except:
                 keyChoice = '0'
         person = people[int(keyChoice)-1]
-        key = K(publicKeys[person],privateKey)[0] # only use x-coordinate for key
-        keys[person] = key
-        print('Your shared key with {} is {}'.format(person,key))
+        sharedKey = K(publicKeys[person],privateKey)[0] # only use x-coordinate for key
+        sharedKeys[person] = sharedKey
+        print('Your shared key with {} is {}'.format(person,sharedKey))
 
 def viewContacts():
-    if keys == {}:
+    if sharedKeys == {}:
         print('You don\'t have any contacts yet')
     else:
-        if len(keys) == 1:
-            print('You have {} contact:'.format(len(keys)))
+        if len(sharedKeys) == 1:
+            print('You have {} contact:'.format(len(sharedKeys)))
         else:
-            print('You have {} contacts:'.format(len(keys)))
-        for i in keys:
+            print('You have {} contacts:'.format(len(sharedKeys)))
+        for i in sharedKeys:
             print(i)
 
 def sendMessage():
-    if keys == {}:
+    if sharedKeys == {}:
         print('You need to add a contact first')
     else:
         print('You can send a message to:')
         i = 1
         contacts = []
-        for x in keys:
+        for x in sharedKeys:
             contacts.append(x)
             print('{}. {}'.format(i,x))
             i += 1
@@ -119,7 +126,7 @@ def sendMessage():
                 keyChoice = '0'
         recipient = contacts[int(keyChoice)-1]
         message = input('What would you like to say to {}? > '.format(recipient))
-        key = hashlib.sha256(int.to_bytes(keys[recipient],32,'big')).digest() # convert ecc key to 32 bytes
+        key = hashlib.sha256(int.to_bytes(sharedKeys[recipient],32,'big')).digest() # convert ecc key to 32 bytes
         cipher = AES.new(key,AES.MODE_EAX)
         nonce = cipher.nonce
         ciphertext,tag = cipher.encrypt_and_digest(message.encode('utf8'))
@@ -136,13 +143,13 @@ def checkMessages():
             print('You have {} messages:'.format(len(messages)))
         for i in messages:
             sender = i[1]
-            if sender not in keys:
+            if sender not in sharedKeys:
                 print('You don\'t have a key with {} yet'.format(sender))
             else:
                 nonce = base64.b64decode(i[2]['data']) # decrypt here
                 ciphertext = base64.b64decode(i[3]['data'])
                 tag = base64.b64decode(i[4]['data'])
-                key = hashlib.sha256(int.to_bytes(keys[sender],32,'big')).digest() # convert ecc key to 32 bytes
+                key = hashlib.sha256(int.to_bytes(sharedKeys[sender],32,'big')).digest() # convert ecc key to 32 bytes
                 cipher = AES.new(key,AES.MODE_EAX,nonce=nonce)
                 try:
                     plaintext = cipher.decrypt(ciphertext).decode()
@@ -152,13 +159,95 @@ def checkMessages():
                 except ValueError:
                     print('Your key is incorrect')
 
+def sendSignature():
+    k = generator.randrange(1,n-1) # select random integer k in interval [1,n-1]
+    r = K(g,k)[0] % n # compute x coordinate of kg mod n (g is base point), if r = 0, generate new k
+    message = 'test'
+    encoded = message.encode('utf8')
+    hashed = hashlib.sha256(encoded)
+    integer = int.from_bytes(hashed.digest(),'big')
+    e = integer #% n # hash of message. truncated?
+    print('e=hash(m):\n',e)
+    # compute k^-1 mod n
+    print('k*k^-1',inverse(n,k)*k%n) # extended euclidian algorithm, check that k/k = 1
+    s = inverse(n,k)*(e+privateKey*r) % n # compute s = k^-1{e + privateKey(r)} mod n
+    print('r=kG:\n',r)
+    print('s=(e+key*r)/k:\n',s)
+    server.receiveSignature(name,r,s) # signature for message m is (r,s)
+    '''
+    # ask for file here instead
+    file = './test.txt'
+    BLOCK_SIZE = 65536
+    file_hash = hashlib.sha256()
+    with open(file,'rb') as f:
+        fb = f.read(BLOCK_SIZE)
+        while len(fb) > 0:
+            file_hash.update(fb)
+            fb = f.read(BLOCK_SIZE)
+    print(file_hash.digest()) # hash value as a bytes object
+    # then send AES encrypted file using shared key?
+    '''
+
+def checkSignature():
+    signatures = server.sendSignatures()
+    if signatures == {} or (len(signatures) == 1 and name in signatures):
+        print('There are no signatures to check')
+    else:
+        print('You can check the signature of:')
+        i = 1
+        people = []
+        for x in signatures:
+            if x != name: # so you can't send a message to yourself
+                people.append(x)
+                print('{}. {}'.format(i,x))
+                i += 1
+        keyChoice = '0'
+        while int(keyChoice) not in range(1,len(people)+1):
+            keyChoice = input('Choose a person > ')
+            try:
+                int(keyChoice) # check for bad input
+            except:
+                keyChoice = '0'
+        person = people[int(keyChoice)-1]
+        [r,s] = signatures[person]
+        print('s:\n',s)
+        publicKeys = server.sendKeys()
+        publicKey = publicKeys[person] # obtain A's public key Q
+        # verify that r and s are integers in interval [1,n-1]
+        w = inverse(n,s) # compute w = s^-1 mod n
+        message = 'test'
+        encoded = message.encode('utf8')
+        hashed = hashlib.sha256(encoded)
+        integer = int.from_bytes(hashed.digest(),'big')
+        e = integer #% n# compute hash of message h(m)
+        print('e=hash(m):\n',e)
+        u1 = e*w % n # compute u1 = h(m)w mod n
+        u2 = r*w % n # compute u2 = rw mod n
+        u1G = K(g,u1)
+        u2Q = K(publicKey,u2)
+        v = move(u1G[0],u1G[1],u2Q[0],u2Q[1])[0] % n # compute u1P + u2Q = (x0,y0) and v = x0 mod n
+        r = r % n
+        print('v=(e/s)G+(r/s)key:\n',v)
+        print('r:\n',r)
+        print('v == r ?:',v==r)
+        return v == r # accept signature iff v = r
+
 if __name__ == "__main__":
+    # public parameters: p,a,b,g,n,h
+
+    # Curve25519
+    p = 2**255 - 19 # prime, size of finite field
+    a,b = montgomery(486662,1) # coefficients of curve equation
+    g = (9,14781619447589544791020593568409986887264606134616475288964881837755586237401) # base point
+    n = 2**252 + 27742317777372353535851937790883648493 # (prime) order l
+    h = 2**3 # cofactor
     server = Pyro4.Proxy("PYRONAME:server")
     name = ''
     while name == '':
         name = input('What is your name? > ').strip()
-    keys = {}
-    privateKey = secrets.SystemRandom().randrange(1,n-1) # {1,...,n-1} where n is the order of the subgroup
+    sharedKeys = {}
+    generator = secrets.SystemRandom()
+    privateKey = generator.randrange(1,n-1) # {1,...,n-1} where n is the order of the subgroup
     publicKey = K(g,privateKey)
     server.receiveKey(name,publicKey)
     
@@ -170,6 +259,8 @@ What would you like to do {}?
 2. View your contacts
 3. Send a message
 4. Check my messages
+5. Send signature
+6. Check a signature
         '''.format(name))
 
         validChoice = False
@@ -184,6 +275,10 @@ What would you like to do {}?
                 sendMessage()
             elif choice == '4':
                 checkMessages()
+            elif choice == '5':
+                sendSignature()
+            elif choice == '6':
+                checkSignature()
             else:
                 validChoice = False
 
@@ -205,3 +300,13 @@ What would you like to do {}?
 # mention in final paper that I initially used random module
 
 # also look at what specifically the secrets module uses to generate randomness
+
+# implement ECDSA
+# serialise file and send it
+
+'''
+presentation is 10 minutes
+about how well you communicate not how good your project is
+explain whar your project is, what you've done so far and what you have left to do
+don't use too much technical language
+'''
