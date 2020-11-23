@@ -18,13 +18,13 @@ def move(xa,ya,xb,yb):
     if xb is None:
         # point1 + 0 = point1
         return xa,ya
-    if form == 0: # Short Weierstrass
+    if form == 0: # Short Weierstrass form
         if [xa,ya] == [xb,yb]: # doubling a point
             m = ((3*xa**2+a)*inverse(p,2*ya)) # (3x^2+a)/(2y)
         else: # adding two points
             m = ((yb-ya)*inverse(p,xb-xa)) # (yb-ya)/(xb-xa)
         xd = (m**2 -xa-xb)
-    elif form == 1: # Montgomery
+    elif form == 1: # Montgomery form
         if [xa,ya] == [xb,yb]: # doubling a point
             m = (3*xa**2+2*a*xa+1)*inverse(p,2*b*ya) # (3x^2+2ax+1)/(2by)
         else: # adding two points
@@ -84,7 +84,7 @@ def newContact():
         person = people[int(keyChoice)-1]
         sharedKey = K(publicKeys[person],privateKey)[0] # only use x-coordinate for key
         sharedKeys[person] = sharedKey
-        print('Your shared key with {} is {}'.format(person,sharedKey))
+        print('Your shared key with {} is 0x{:x}'.format(person,sharedKey))
 
 def viewContacts():
     if sharedKeys == {}:
@@ -159,12 +159,10 @@ def sendSignature():
     integer = int.from_bytes(hashed.digest(),'big')
     e = integer >> (integer.bit_length() - n.bit_length())
     #e = (integer % n) //10# hash of message. truncated?
-    print('e=hash(m):\n',e)
-    # compute k^-1 mod n
-    print('k*k^-1',inverse(n,k)*k%n) # extended euclidian algorithm, check that k/k = 1
+    print('e=hash(m):',e)
     s = inverse(n,k)*(e+privateKey*r) % n # compute s = k^-1{e + privateKey(r)} mod n
-    print('r=kG:\n',r)
-    print('s=(e+key*r)/k:\n',s)
+    print('r:',r)
+    print('s:',s)
     server.receiveSignature(name,r,s) # signature for message m is (r,s)
     '''
     # ask for file here instead
@@ -202,7 +200,6 @@ def checkSignature():
                 keyChoice = '0'
         person = people[int(keyChoice)-1]
         [r,s] = signatures[person]
-        print('s:\n',s)
         publicKeys = server.sendKeys()
         publicKey = publicKeys[person] # obtain A's public key Q
         # verify that r and s are integers in interval [1,n-1]
@@ -210,18 +207,17 @@ def checkSignature():
         message = 'Hello!'
         encoded = message.encode('utf8')
         hashed = hashlib.sha512(encoded)
-        integer = int.from_bytes(hashed.digest(),'big')
+        integer = int.from_bytes(hashed.digest(),'big') # compute hash of message h(m)
         e = integer >> (integer.bit_length() - n.bit_length()) # discard righmost bits to truncate hash
-        #e = (integer % n) // 10# compute hash of message h(m)
-        print('e=hash(m):\n',e)
+        print('e=hash(m):',e)
         u1 = e*w % n # compute u1 = h(m)w mod n
         u2 = r*w % n # compute u2 = rw mod n
         u1G = K(g,u1)
         u2Q = K(publicKey,u2)
         v = move(u1G[0],u1G[1],u2Q[0],u2Q[1])[0] % n # compute u1P + u2Q = (x0,y0) and v = x0 mod n
         r = r % n
-        print('v=(e/s)G+(r/s)key:\n',v)
-        print('r:\n',r)
+        print('v:',v)
+        print('r:',r)
         print('v == r ?:',v==r)
         if v == r:
             print('Signature Accepted!')
@@ -233,7 +229,7 @@ if __name__ == "__main__":
     # public parameters: p,a,b,g,n,h
 
     # Curve25519
-    # form = {0:'Short Weierstrass', 1:'Montgomery', 2:'Edwards'}
+    # form = {0:'Short Weierstrass', 1:'Montgomery'}
     form = 1 # by^2 = x^3 + ax^2 + x
     p = 2**255 - 19 # prime, size of finite field
     a = 486662 # coefficients of curve
@@ -249,8 +245,9 @@ if __name__ == "__main__":
     b = 7
     g = (55066263022277343669578718895168534326250603453777594175500187360389116729240,32670510020758816978083085130507043184471273380659243275938904335757337482424)
     n = 2**256 - 432420386565659656852420866394968145599
-    h = 1
+    h = 1 # not secure because of this
     '''
+    
     server = Pyro4.Proxy("PYRONAME:server")
     name = ''
     while name == '':
@@ -303,7 +300,7 @@ What would you like to do {}?
 
 # comment on small numbers for private key
 
-# sign two files with same key and same k, then calculate private key and sign third document with it
+# sign two files with same key and same k, then calculate private key and sign third document with it, ie demo breaking ECDSA like Sony
 # serialise file, break into chunks of 251 bits
 # hashlib has useful functions for hashing and serialising files
 
