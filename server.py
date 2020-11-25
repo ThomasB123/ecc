@@ -17,28 +17,47 @@ class server(object):
     def sendKeys(self):
         return keys
 
-    def checkOnline(self):
-        return None
-
-    def receiveMessage(self,to,from_,nonce,ciphertext,tag): # recipient, sender, content
+    def receiveMessage(self,to,from_,nonce,ciphertext,tag,r,s): # recipient, sender, content
         x = uuid.uuid1() # unique identifier of message
-        messages[x.hex] = [to,from_,nonce,ciphertext,tag]
+        messages[x.hex] = [to,from_,nonce,ciphertext,tag,r,s]
         print(messages)
-        return None
 
     def checkMessages(self,to):
-        global messages
         out = []
         for i in messages:
-            if messages[i][0] == to:
+            if messages[i][0] == to: # if message is meant for person
                 add = [i]
-                for x in messages[i][1:]:
+                for x in messages[i][1:]: # add all parts except 'to'
                     add.append(x)
                 out.append(add)
         return out
 
     def deleteMessage(self,x):
         messages.pop(x)
+    
+    def receiveSignature(self,from_,r,s):
+        signatures[from_] = [r,s]
+
+    def sendSignatures(self):
+        return signatures
+    
+    def receiveFile(self,to,from_,nameEncrypted,nsz,encrypted,fsz,iv,r,s):
+        x = uuid.uuid1()
+        files[x.hex] = [to,from_,nameEncrypted,nsz,encrypted,fsz,iv,r,s]
+        print(files)
+    
+    def sendFiles(self,to):
+        out = []
+        for i in files:
+            if files[i][0] == to:
+                add = [i]
+                for x in files[i][1:]:
+                    add.append(x)
+                out.append(add)
+        return out
+    
+    def deleteFile(self,x):
+        files.pop(x)
 
 if __name__ == "__main__":
 
@@ -48,6 +67,8 @@ if __name__ == "__main__":
     ns.register('server', uri) # register the object with a name in the name server
     keys = {}
     messages = {}
+    signatures = {}
+    files = {}
     print("Ready.")
     daemon.requestLoop() # start the event loop of the server to wait for calls
     

@@ -10,6 +10,8 @@ from Cryptodome.Cipher import AES
 import base64 # built in
 import hashlib # built in
 import secrets # built in
+import os
+import os.path # used for file sending
 
 def move(xa,ya,xb,yb):
     if xa is None:
@@ -82,7 +84,9 @@ def newContact():
             except:
                 keyChoice = '0'
         person = people[int(keyChoice)-1]
-        sharedKey = K(publicKeys[person],privateKey)[0] # only use x-coordinate for key
+        sharedKey = K(publicKeys[person],privateKey)
+        sharedKey = K(sharedKey,h) # cofactor h, prevents small subgroup attacks
+        sharedKey = sharedKey[0] # only use x-coordinate for key
         sharedKeys[person] = sharedKey
         print('Your shared key with {} is 0x{:x}'.format(person,sharedKey))
 
@@ -117,11 +121,20 @@ def sendMessage():
                 keyChoice = '0'
         recipient = contacts[int(keyChoice)-1]
         message = input('What would you like to say to {}? > '.format(recipient))
+        encoded = message.encode('utf8')
         key = hashlib.sha256(int.to_bytes(sharedKeys[recipient],32,'big')).digest() # convert ecc key to 32 bytes
         cipher = AES.new(key,AES.MODE_EAX)
         nonce = cipher.nonce
-        ciphertext,tag = cipher.encrypt_and_digest(message.encode('utf8'))
-        server.receiveMessage(recipient,name,nonce,ciphertext,tag) # encrypt here
+        ciphertext,tag = cipher.encrypt_and_digest(encoded)
+        # send signature with text message
+        hashed = hashlib.sha512(encoded)
+        integer = int.from_bytes(hashed.digest(),'big')
+        e = integer >> (integer.bit_length() - n.bit_length()) # hash of message, truncated
+        k = generator.randrange(1,n-1) # select random integer k in interval [1,n-1]
+        r = K(g,k)[0] % n # compute x coordinate of kg mod n (g is base point), if r = 0, generate new k
+        s = inverse(n,k)*(e+privateKey*r) % n # compute s = k^-1{e + privateKey(r)} mod n
+        server.receiveMessage(recipient,name,nonce,ciphertext,tag,r,s) # encrypt here
+        print('Message sent to {}'.format(recipient))
 
 def checkMessages():
     messages = server.checkMessages(name)
@@ -135,7 +148,7 @@ def checkMessages():
         for i in messages:
             sender = i[1]
             if sender not in sharedKeys:
-                print('You don\'t have a key with {} yet'.format(sender))
+                print('You must add {} as a contact to read this message'.format(sender))
             else:
                 nonce = base64.b64decode(i[2]['data']) # decrypt here
                 ciphertext = base64.b64decode(i[3]['data'])
@@ -145,38 +158,42 @@ def checkMessages():
                 try:
                     plaintext = cipher.decrypt(ciphertext).decode()
                     cipher.verify(tag)
-                    print('{} says {}'.format(sender,plaintext))
-                    server.deleteMessage(i[0])
+                    r = i[5]
+                    s = i[6]
+                    publicKeys = server.sendKeys()
+                    publicKey = publicKeys[sender] # obtain A's public key Q
+                    # verify that r and s are integers in interval [1,n-1]
+                    w = inverse(n,s) # compute w = s^-1 mod n
+                    message_hash = hashlib.sha512(plaintext.encode('utf8'))
+                    integer = int.from_bytes(message_hash.digest(),'big') # compute hash of message h(m), as bytes object
+                    e = integer >> (integer.bit_length() - n.bit_length()) # discard rightmost bits to truncate hash
+                    u1 = e*w % n # compute u1 = h(m)w mod n
+                    u2 = r*w % n # compute u2 = rw mod n
+                    u1G = K(g,u1)
+                    u2Q = K(publicKey,u2)
+                    v = move(u1G[0],u1G[1],u2Q[0],u2Q[1])[0] % n # compute u1P + u2Q = (x0,y0) and v = x0 mod n
+                    r = r % n
+                    if v == r:
+                        print('{} says {}, and the signature is authentic'.format(sender,plaintext))
+                    else:
+                        print('{} says {}, but the signature is not authentic'.format(sender,plaintext))
+                    server.deleteMessage(i[0]) # delete message from server once read, regardless of signature verification
                 except ValueError:
-                    print('Your key is incorrect')
+                    print('Your shared key with {} is incorrect'.format(sender))
+                    
 
-def sendSignature():
-    k = generator.randrange(1,n-1) # select random integer k in interval [1,n-1]
+def sendSignature(): # ECDSA algorithm
+    message = b'Hello!' # verify signatures with simple message
+    message_hash = hashlib.sha512(message) # to ensure 512 bit hashes, so always larger than n when truncating
+    integer = int.from_bytes(message_hash.digest(),'big') # hash value as an integer
+    e = integer >> (integer.bit_length() - n.bit_length()) # hash of message, truncated to size of n
+    k = generator.randrange(1,n-1) # select random integer k in interval [1,n-1]. Demo why this breaks when k is constant
     r = K(g,k)[0] % n # compute x coordinate of kg mod n (g is base point), if r = 0, generate new k
-    message = 'Hello!'
-    encoded = message.encode('utf8')
-    hashed = hashlib.sha512(encoded)
-    integer = int.from_bytes(hashed.digest(),'big')
-    e = integer >> (integer.bit_length() - n.bit_length())
-    #e = (integer % n) //10# hash of message. truncated?
-    print('e=hash(m):',e)
     s = inverse(n,k)*(e+privateKey*r) % n # compute s = k^-1{e + privateKey(r)} mod n
+    print('e=hash(m):',e)
     print('r:',r)
     print('s:',s)
     server.receiveSignature(name,r,s) # signature for message m is (r,s)
-    '''
-    # ask for file here instead
-    file = './test.txt'
-    BLOCK_SIZE = 65536
-    file_hash = hashlib.sha256()
-    with open(file,'rb') as f:
-        fb = f.read(BLOCK_SIZE)
-        while len(fb) > 0:
-            file_hash.update(fb)
-            fb = f.read(BLOCK_SIZE)
-    print(file_hash.digest()) # hash value as a bytes object
-    # then send AES encrypted file using shared key?
-    '''
 
 def checkSignature():
     signatures = server.sendSignatures()
@@ -203,19 +220,18 @@ def checkSignature():
         publicKeys = server.sendKeys()
         publicKey = publicKeys[person] # obtain A's public key Q
         # verify that r and s are integers in interval [1,n-1]
+        message = b'Hello!' # simple test message, for signature verification
+        message_hash = hashlib.sha512(message)
+        integer = int.from_bytes(message_hash.digest(),'big') # compute hash of message h(m), as an integer
+        e = integer >> (integer.bit_length() - n.bit_length()) # discard rightmost bits to truncate hash
         w = inverse(n,s) # compute w = s^-1 mod n
-        message = 'Hello!'
-        encoded = message.encode('utf8')
-        hashed = hashlib.sha512(encoded)
-        integer = int.from_bytes(hashed.digest(),'big') # compute hash of message h(m)
-        e = integer >> (integer.bit_length() - n.bit_length()) # discard righmost bits to truncate hash
-        print('e=hash(m):',e)
         u1 = e*w % n # compute u1 = h(m)w mod n
         u2 = r*w % n # compute u2 = rw mod n
         u1G = K(g,u1)
         u2Q = K(publicKey,u2)
         v = move(u1G[0],u1G[1],u2Q[0],u2Q[1])[0] % n # compute u1P + u2Q = (x0,y0) and v = x0 mod n
         r = r % n
+        print('e=hash(m):',e)
         print('v:',v)
         print('r:',r)
         print('v == r ?:',v==r)
@@ -224,6 +240,114 @@ def checkSignature():
         else:
             print('Signature Error')
         return v == r # accept signature iff v = r
+
+def sendFile():
+    if sharedKeys == {}:
+        print('You need to add a contact first')
+    else:
+        print('You can send a file to:')
+        i = 1
+        contacts = []
+        for x in sharedKeys:
+            contacts.append(x)
+            print('{}. {}'.format(i,x))
+            i += 1
+        keyChoice = '0'
+        while int(keyChoice) not in range(1,len(contacts)+1):
+            keyChoice = input('Choose a person > ')
+            try:
+                int(keyChoice) # check for bad input
+            except:
+                keyChoice = '0'
+        recipient = contacts[int(keyChoice)-1]
+        fileName = ''
+        while not os.path.isfile(fileName):
+            fileName = input('Enter file name > ')
+
+        key = hashlib.sha256(int.to_bytes(sharedKeys[recipient],32,'big')).digest() # convert shared ecc key to 32 bytes
+        cipher = AES.new(key,AES.MODE_CBC)
+        nsz = len(fileName.encode('utf8')) # name size in bytes
+        fsz = os.path.getsize(fileName) # file size in bytes
+        iv = cipher.iv
+        sz = 256
+        encrypted = []
+        fileNameBuffer = fileName
+        if len(fileName) % 16 != 0:
+            fileNameBuffer += ' ' * (16-len(fileName)%16)
+        nameEncrypted = cipher.encrypt(fileNameBuffer.encode('utf8'))
+        with open(fileName) as fin:
+            while True:
+                data = fin.read(sz)
+                i = len(data)
+                if i == 0:
+                    break
+                elif i % 16 != 0:
+                    data += ' ' * (16-i%16) # padded with spaces
+                encd = cipher.encrypt(data.encode())
+                encrypted.append(encd)
+        
+        BLOCK_SIZE = 251 # 251 bit chunks
+        file_hash = hashlib.sha512() # to ensure 512 bit hashes, so always larger than n when truncating
+        with open(fileName,'rb') as f:
+            fb = f.read(BLOCK_SIZE)
+            while len(fb) > 0:
+                file_hash.update(fb)
+                fb = f.read(BLOCK_SIZE)
+        integer = int.from_bytes(file_hash.digest(),'big')
+        e = integer >> (integer.bit_length() - n.bit_length()) # hash of message, truncated
+        k = generator.randrange(1,n-1) # select random integer k in interval [1,n-1]
+        r = K(g,k)[0] % n # compute x coordinate of kg mod n (g is base point), if r = 0, generate new k
+        s = inverse(n,k)*(e+privateKey*r) % n # compute s = k^-1{e + privateKey(r)} mod n
+        print('e=hash(m):',e)
+        print('r:',r)
+        print('s:',s)
+        server.receiveFile(recipient,name,nameEncrypted,nsz,encrypted,fsz,iv,r,s)
+
+def checkFiles():
+    files = server.sendFiles(name)
+    if files == []:
+        print('There are no files for you {}'.format(name))
+    else:
+        if len(files) == 1:
+            print('You have {} file:'.format(len(files)))
+        else:
+            print('You have {} files:'.format(len(files)))
+        for i in files:
+            sender = i[1]
+            if sender not in sharedKeys:
+                print('You must add {} as a contact to read this file'.format(sender))
+            else:
+                fileName = base64.b64decode(i[2]['data'])
+                nsz = i[3] # file name size in bytes
+                fileContent = i[4]
+                fsz = i[5] # file size in bytes
+                iv = base64.b64decode(i[6]['data'])
+                r = i[7]
+                s = i[8]
+                key = hashlib.sha256(int.to_bytes(sharedKeys[sender],32,'big')).digest()
+                cipher = AES.new(key,AES.MODE_CBC,iv)
+                sz = 256
+                try:
+                    plainName = cipher.decrypt(fileName).decode()[:nsz] # must decode in same order as encoded, since using CBC
+                    if not os.path.exists(name):
+                        os.makedirs(name)
+                    with open(os.path.join(name,plainName),'w') as fout:
+                        for x in fileContent:
+                            data = base64.b64decode(x['data'])
+                            text = cipher.decrypt(data).decode()
+                            if fsz > len(text):
+                                fout.write(text)
+                            else:
+                                fout.write(text[:fsz]) # remove padding on last block
+                            fsz -= len(text)
+                    print('{} sent you a file called {}'.format(sender,plainName))
+                    # decrypt file name. DONE
+                    # decrypt file contents. DONE
+                    # hash contents
+                    # check signature
+                    server.deleteFile(i[0])
+                except:
+                    print('Your shared key with {} is incorrect'.format(sender))
 
 if __name__ == "__main__":
     # public parameters: p,a,b,g,n,h
@@ -235,18 +359,8 @@ if __name__ == "__main__":
     a = 486662 # coefficients of curve
     b = 1 # coefficients of curve
     g = (9,14781619447589544791020593568409986887264606134616475288964881837755586237401) # base point
-    n = 2**252 + 27742317777372353535851937790883648493 # (prime) order l
-    h = 2**3 # cofactor
-    '''
-    # secp256k1
-    form = 0 # y^2 = x^3 + ax + b
-    p = 2**256 - 2**32 - 977
-    a = 0
-    b = 7
-    g = (55066263022277343669578718895168534326250603453777594175500187360389116729240,32670510020758816978083085130507043184471273380659243275938904335757337482424)
-    n = 2**256 - 432420386565659656852420866394968145599
-    h = 1 # not secure because of this
-    '''
+    n = 2**252 + 27742317777372353535851937790883648493 # (prime) order of subgroup
+    h = 2**3 # cofactor of subgroup
     
     server = Pyro4.Proxy("PYRONAME:server")
     name = ''
@@ -264,10 +378,13 @@ if __name__ == "__main__":
 What would you like to do {}?
 1. Add a new contact
 2. View your contacts
-3. Send a message
-4. Check my messages
-5. Send signature
-6. Check a signature
+3. Send signature
+4. Check a signature
+5. Send a message
+6. Check for messages
+7. Send a file
+8. Check for files
+q. Quit
         '''.format(name))
 
         validChoice = False
@@ -279,37 +396,37 @@ What would you like to do {}?
             elif choice == '2':
                 viewContacts()
             elif choice == '3':
-                sendMessage()
-            elif choice == '4':
-                checkMessages()
-            elif choice == '5':
                 sendSignature()
-            elif choice == '6':
+            elif choice == '4':
                 checkSignature()
+            elif choice == '5':
+                sendMessage()
+            elif choice == '6':
+                checkMessages()
+            elif choice == '7':
+                sendFile()
+            elif choice == '8':
+                checkFiles()    
+            elif choice == 'q' or choice == 'Q':
+                print('Goodbye', name)
+                quit()
             else:
                 validChoice = False
 
 # implement ephemeral Diffie Hellman
-# cofactor h used to calculate P = h(my private)(other public)
-# provides efficient resistance to attacks such as small subgroup attacks. see SEC 1 and Lopez 200 paper
-# cofactor h = #E(Fq)/n , number of points on the curve?
 
 # use user delay in future development?
 # Design your own random number algorithm based on e.g. user delay on inputs.
 # How many random bits do you need? How long will it take.
 
-# comment on small numbers for private key
-
 # sign two files with same key and same k, then calculate private key and sign third document with it, ie demo breaking ECDSA like Sony
 # serialise file, break into chunks of 251 bits
 # hashlib has useful functions for hashing and serialising files
 
-# mention in final paper that I initially used random module
-
 # also look at what specifically the secrets module uses to generate randomness
 
-# implement ECDSA
 # serialise file and send it
+# clear up code a bit, parameterise more and use better variable names
 
 '''
 presentation is 10 minutes
