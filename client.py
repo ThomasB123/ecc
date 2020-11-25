@@ -340,11 +340,30 @@ def checkFiles():
                             else:
                                 fout.write(text[:fsz]) # remove padding on last block
                             fsz -= len(text)
-                    print('{} sent you a file called {}'.format(sender,plainName))
-                    # decrypt file name. DONE
-                    # decrypt file contents. DONE
-                    # hash contents
-                    # check signature
+                    # signature check
+                    publicKeys = server.sendKeys()
+                    publicKey = publicKeys[sender] # obtain A's public key Q
+                    # verify that r and s are integers in interval [1,n-1]
+                    BLOCK_SIZE = 251 # 251 bit chunks
+                    file_hash = hashlib.sha512() # to ensure 512 bit hashes, so always larger than n when truncating
+                    with open(os.path.join(name,plainName),'rb') as f:
+                        fb = f.read(BLOCK_SIZE)
+                        while len(fb) > 0:
+                            file_hash.update(fb)
+                            fb = f.read(BLOCK_SIZE)
+                    integer = int.from_bytes(file_hash.digest(),'big')
+                    e = integer >> (integer.bit_length() - n.bit_length()) # hash of message, truncated
+                    w = inverse(n,s) # compute w = s^-1 mod n
+                    u1 = e*w % n # compute u1 = h(m)w mod n
+                    u2 = r*w % n # compute u2 = rw mod n
+                    u1G = K(g,u1)
+                    u2Q = K(publicKey,u2)
+                    v = move(u1G[0],u1G[1],u2Q[0],u2Q[1])[0] % n # compute u1P + u2Q = (x0,y0) and v = x0 mod n
+                    r = r % n
+                    if v == r:
+                        print('{} sent you a file called {}, and the signature is authentic'.format(sender,plainName))
+                    else:
+                        print('{} sent you a file called {}, but the signature is not authentic'.format(sender,plainName))
                     server.deleteFile(i[0])
                 except:
                     print('Your shared key with {} is incorrect'.format(sender))
@@ -425,8 +444,8 @@ q. Quit
 
 # also look at what specifically the secrets module uses to generate randomness
 
-# serialise file and send it
 # clear up code a bit, parameterise more and use better variable names
+# change aes type for message sending?
 
 '''
 presentation is 10 minutes
