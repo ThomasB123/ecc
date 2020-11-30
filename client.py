@@ -121,7 +121,7 @@ def sendMessage():
                 keyChoice = '0'
         recipient = contacts[int(keyChoice)-1]
         message = input('What would you like to say to {}? > '.format(recipient))
-        encoded = message.encode('utf8')
+        encoded = message.encode('utf-8')
         key = hashlib.sha256(int.to_bytes(sharedKeys[recipient],32,'big')).digest() # convert ecc key to 32 bytes
         cipher = AES.new(key,AES.MODE_EAX)
         nonce = cipher.nonce
@@ -130,7 +130,7 @@ def sendMessage():
         hashed = hashlib.sha512(encoded)
         integer = int.from_bytes(hashed.digest(),'big')
         e = integer >> (integer.bit_length() - n.bit_length()) # hash of message, truncated
-        k = generator.randrange(1,n-1) # select random integer k in interval [1,n-1]
+        k = generator.randrange(n//2,n-1) # select random integer k in interval [1,n-1]
         r = K(g,k)[0] % n # compute x coordinate of kg mod n (g is base point), if r = 0, generate new k
         s = inverse(n,k)*(e+privateKey*r) % n # compute s = k^-1{e + privateKey(r)} mod n
         server.receiveMessage(recipient,name,nonce,ciphertext,tag,r,s) # encrypt here
@@ -164,7 +164,7 @@ def checkMessages():
                     publicKey = publicKeys[sender] # obtain A's public key Q
                     # verify that r and s are integers in interval [1,n-1]
                     w = inverse(n,s) # compute w = s^-1 mod n
-                    message_hash = hashlib.sha512(plaintext.encode('utf8'))
+                    message_hash = hashlib.sha512(plaintext.encode('utf-8'))
                     integer = int.from_bytes(message_hash.digest(),'big') # compute hash of message h(m), as bytes object
                     e = integer >> (integer.bit_length() - n.bit_length()) # discard rightmost bits to truncate hash
                     u1 = e*w % n # compute u1 = h(m)w mod n
@@ -187,7 +187,7 @@ def sendSignature(): # ECDSA algorithm
     message_hash = hashlib.sha512(message) # to ensure 512 bit hashes, so always larger than n when truncating
     integer = int.from_bytes(message_hash.digest(),'big') # hash value as an integer
     e = integer >> (integer.bit_length() - n.bit_length()) # hash of message, truncated to size of n
-    k = generator.randrange(1,n-1) # select random integer k in interval [1,n-1]. Demo why this breaks when k is constant
+    k = generator.randrange(n//2,n-1) # select random integer k in interval [1,n-1]. Demo why this breaks when k is constant
     r = K(g,k)[0] % n # compute x coordinate of kg mod n (g is base point), if r = 0, generate new k
     s = inverse(n,k)*(e+privateKey*r) % n # compute s = k^-1{e + privateKey(r)} mod n
     print('e=hash(m):',e)
@@ -266,7 +266,7 @@ def sendFile():
 
         key = hashlib.sha256(int.to_bytes(sharedKeys[recipient],32,'big')).digest() # convert shared ecc key to 32 bytes
         cipher = AES.new(key,AES.MODE_CBC)
-        nsz = len(fileName.encode('utf8')) # name size in bytes
+        nsz = len(fileName.encode('utf-8')) # name size in bytes
         fsz = os.path.getsize(fileName) # file size in bytes
         iv = cipher.iv
         sz = 256
@@ -274,16 +274,16 @@ def sendFile():
         fileNameBuffer = fileName
         if len(fileName) % 16 != 0:
             fileNameBuffer += ' ' * (16-len(fileName)%16)
-        nameEncrypted = cipher.encrypt(fileNameBuffer.encode('utf8'))
-        with open(fileName) as fin:
+        nameEncrypted = cipher.encrypt(fileNameBuffer.encode('utf-8'))
+        with open(fileName,'rb') as fin:
             while True:
                 data = fin.read(sz)
                 i = len(data)
                 if i == 0:
                     break
                 elif i % 16 != 0:
-                    data += ' ' * (16-i%16) # padded with spaces
-                encd = cipher.encrypt(data.encode())
+                    data += bytearray(' ','utf-8') * (16-i%16) # padded with spaces (in byte form)
+                encd = cipher.encrypt(data)
                 encrypted.append(encd)
         
         BLOCK_SIZE = 251 # 251 bit chunks
@@ -295,7 +295,7 @@ def sendFile():
                 fb = f.read(BLOCK_SIZE)
         integer = int.from_bytes(file_hash.digest(),'big')
         e = integer >> (integer.bit_length() - n.bit_length()) # hash of message, truncated
-        k = generator.randrange(1,n-1) # select random integer k in interval [1,n-1]
+        k = generator.randrange(n//2,n-1) # select random integer k in interval [1,n-1]
         r = K(g,k)[0] % n # compute x coordinate of kg mod n (g is base point), if r = 0, generate new k
         s = inverse(n,k)*(e+privateKey*r) % n # compute s = k^-1{e + privateKey(r)} mod n
         print('e=hash(m):',e)
@@ -328,13 +328,15 @@ def checkFiles():
                 cipher = AES.new(key,AES.MODE_CBC,iv)
                 sz = 256
                 try:
-                    plainName = cipher.decrypt(fileName).decode()[:nsz] # must decode in same order as encoded, since using CBC
+                    plainName = cipher.decrypt(fileName)[:nsz].decode() # must decode in same order as encoded, since using CBC
+                    # trim padding before decoding
                     if not os.path.exists(name):
                         os.makedirs(name)
-                    with open(os.path.join(name,plainName),'w') as fout:
+                    with open(os.path.join(name,plainName),'wb') as fout: # write in binary mode
                         for x in fileContent:
                             data = base64.b64decode(x['data'])
-                            text = cipher.decrypt(data).decode()
+                            #print(data)
+                            text = cipher.decrypt(data)#.decode()
                             if fsz > len(text):
                                 fout.write(text)
                             else:
@@ -387,7 +389,7 @@ if __name__ == "__main__":
         name = input('What is your name? > ').strip()
     sharedKeys = {}
     generator = secrets.SystemRandom()
-    privateKey = generator.randrange(1,n-1) # {1,...,n-1} where n is the order of the subgroup
+    privateKey = generator.randrange(n//2,n-1) # {1,...,n-1} where n is the order of the subgroup
     publicKey = K(g,privateKey)
     server.receiveKey(name,publicKey)
     
@@ -447,9 +449,18 @@ q. Quit
 # clear up code a bit, parameterise more and use better variable names
 # change aes type for message sending?
 
+# currently file exchange only works for text based files like .py or .txt, not for .doc or .pdf files
+# verbose mode in UI, variable levels of showing what's going on
+# timing attacks, how many 1s and most significant 1 in binary
+# run with different key size settings and see how long it takes to do calculations
+
 '''
 presentation is 10 minutes
 about how well you communicate not how good your project is
 explain whar your project is, what you've done so far and what you have left to do
 don't use too much technical language
+give intuitive definitions, only define ECDLP, not also ECDHP
+7 slides max, gives 1 min 25 secs per slide
+say that various things make curve safe, here they are but I don't have time to go through them, maybe most intuitive one
+relating to RSA is good since can assume audience knowledge of RSA
 '''
