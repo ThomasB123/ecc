@@ -490,16 +490,12 @@ q. Quit
 # How many random bits do you need? How long will it take.
 
 # sign two files with same key and same k, then calculate private key and sign third document with it, ie demo breaking ECDSA like Sony
-# serialise file, break into chunks of 251 bits
-# hashlib has useful functions for hashing and serialising files
 
 # also look at what specifically the secrets module uses to generate randomness
 
 # clear up code a bit, parameterise more and use better variable names
 # change aes type for message sending?
 
-# currently file exchange only works for text based files like .py or .txt, not for .doc or .pdf files
-# verbose mode in UI, variable levels of showing what's going on
 # timing attacks, how many 1s and most significant 1 in binary
 # run with different key size settings and see how long it takes to do calculations
 
