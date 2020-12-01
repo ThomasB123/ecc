@@ -84,11 +84,17 @@ def newContact():
             except:
                 keyChoice = '0'
         person = people[int(keyChoice)-1]
-        sharedKey = K(publicKeys[person],privateKey)
-        sharedKey = K(sharedKey,h) # cofactor h, prevents small subgroup attacks
-        sharedKey = sharedKey[0] # only use x-coordinate for key
+        pubPriv = K(publicKeys[person],privateKey)
+        pubPrivh = K(pubPriv,h) # cofactor h, prevents small subgroup attacks
+        sharedKey = pubPrivh[0] # only use x-coordinate for key
         sharedKeys[person] = sharedKey
-        print('Your shared key with {} is 0x{:x}'.format(person,sharedKey))
+        if verbose:
+            print('Your shared key is calculated by h*d*Q, where h is the cofactor, d is your private key, and Q is {}\'s public key'.format(person))
+            print('{}\'s public key is {}, multiplying by your private key gives {}'.format(person,publicKeys[person],pubPriv))
+            print('Then multiplying this by the cofactor h={} gives {}'.format(h,pubPrivh))
+            print('Therefore, your shared key with {} is {}'.format(person,sharedKey))
+        else:
+            print('Your shared key with {} is 0x{:x}'.format(person,sharedKey))
 
 def viewContacts():
     if sharedKeys == {}:
@@ -134,6 +140,12 @@ def sendMessage():
         r = K(g,k)[0] % n # compute x coordinate of kg mod n (g is base point), if r = 0, generate new k
         s = inverse(n,k)*(e+privateKey*r) % n # compute s = k^-1{e + privateKey(r)} mod n
         server.receiveMessage(recipient,name,nonce,ciphertext,tag,r,s) # encrypt here
+        if verbose:
+            print('Use shared key to encrypt your message to {}'.format(recipient))
+            print('Truncated hash of message: e = {}'.format(e))
+            print('Select random k, calculate r = kG = {}'.format(r))
+            print('s = (e+key*r)/k = {}'.format(s))
+            print('Signature is pair (r,s)')
         print('Message sent to {}'.format(recipient))
 
 def checkMessages():
@@ -173,6 +185,16 @@ def checkMessages():
                     u2Q = K(publicKey,u2)
                     v = move(u1G[0],u1G[1],u2Q[0],u2Q[1])[0] % n # compute u1P + u2Q = (x0,y0) and v = x0 mod n
                     r = r % n
+                    if verbose:
+                        print('Use (r,s) signature pair, sent by {}'.format(sender))
+                        print('Use shared key to decrypt message from {}'.format(sender))
+                        print('Truncated hash of message: e = {}'.format(e))
+                        print('v = (e/s)*G + (r/s)*Q = {}'.format(v))
+                        print('r = {}'.format(r))
+                        if v == r:
+                            print('v == r, so the signature is valid')
+                        else:
+                            print('v != r, so the signature is not valid')
                     if v == r:
                         print('{} says {}, and the signature is authentic'.format(sender,plaintext))
                     else:
@@ -180,7 +202,6 @@ def checkMessages():
                     server.deleteMessage(i[0]) # delete message from server once read, regardless of signature verification
                 except ValueError:
                     print('Your shared key with {} is incorrect'.format(sender))
-                    
 
 def sendSignature(): # ECDSA algorithm
     message = b'Hello!' # verify signatures with simple message
@@ -190,10 +211,13 @@ def sendSignature(): # ECDSA algorithm
     k = generator.randrange(n//2,n-1) # select random integer k in interval [1,n-1]. Demo why this breaks when k is constant
     r = K(g,k)[0] % n # compute x coordinate of kg mod n (g is base point), if r = 0, generate new k
     s = inverse(n,k)*(e+privateKey*r) % n # compute s = k^-1{e + privateKey(r)} mod n
-    print('e=hash(m):',e)
-    print('r:',r)
-    print('s:',s)
     server.receiveSignature(name,r,s) # signature for message m is (r,s)
+    if verbose:
+        print('Truncated hash of message: e = {}'.format(e))
+        print('Select random k, calculate r = kG = {}'.format(r))
+        print('s = (e+key*r)/k = {}'.format(s))
+        print('Signature is pair (r,s)')
+    print('Signature sent.')
 
 def checkSignature():
     signatures = server.sendSignatures()
@@ -231,15 +255,19 @@ def checkSignature():
         u2Q = K(publicKey,u2)
         v = move(u1G[0],u1G[1],u2Q[0],u2Q[1])[0] % n # compute u1P + u2Q = (x0,y0) and v = x0 mod n
         r = r % n
-        print('e=hash(m):',e)
-        print('v:',v)
-        print('r:',r)
-        print('v == r ?:',v==r)
+        if verbose:
+            print('Use (r,s) signature pair, sent by {}'.format(person))
+            print('Truncated hash of message: e = {}'.format(e))
+            print('v = (e/s)*G + (r/s)*Q = {}'.format(v))
+            print('r = {}'.format(r))
+            if v == r:
+                print('v == r, so the signature is valid')
+            else:
+                print('v != r, so the signature is not valid')
         if v == r:
             print('Signature Accepted!')
         else:
             print('Signature Error')
-        return v == r # accept signature iff v = r
 
 def sendFile():
     if sharedKeys == {}:
@@ -263,7 +291,6 @@ def sendFile():
         fileName = ''
         while not os.path.isfile(fileName):
             fileName = input('Enter file name > ')
-
         key = hashlib.sha256(int.to_bytes(sharedKeys[recipient],32,'big')).digest() # convert shared ecc key to 32 bytes
         cipher = AES.new(key,AES.MODE_CBC)
         nsz = len(fileName.encode('utf-8')) # name size in bytes
@@ -285,7 +312,6 @@ def sendFile():
                     data += bytearray(' ','utf-8') * (16-i%16) # padded with spaces (in byte form)
                 encd = cipher.encrypt(data)
                 encrypted.append(encd)
-        
         BLOCK_SIZE = 251 # 251 bit chunks
         file_hash = hashlib.sha512() # to ensure 512 bit hashes, so always larger than n when truncating
         with open(fileName,'rb') as f:
@@ -298,10 +324,14 @@ def sendFile():
         k = generator.randrange(n//2,n-1) # select random integer k in interval [1,n-1]
         r = K(g,k)[0] % n # compute x coordinate of kg mod n (g is base point), if r = 0, generate new k
         s = inverse(n,k)*(e+privateKey*r) % n # compute s = k^-1{e + privateKey(r)} mod n
-        print('e=hash(m):',e)
-        print('r:',r)
-        print('s:',s)
         server.receiveFile(recipient,name,nameEncrypted,nsz,encrypted,fsz,iv,r,s)
+        if verbose:
+            print('Use shared key to encrypt your file to {}'.format(recipient))
+            print('Truncated hash of message: e={}'.format(e))
+            print('Select random k, calculate r=kG={}'.format(r))
+            print('s=(e+key*r)/k={}'.format(s))
+            print('Signature is pair (r,s)')
+        print('File sent to {}'.format(recipient))
 
 def checkFiles():
     files = server.sendFiles(name)
@@ -362,6 +392,16 @@ def checkFiles():
                     u2Q = K(publicKey,u2)
                     v = move(u1G[0],u1G[1],u2Q[0],u2Q[1])[0] % n # compute u1P + u2Q = (x0,y0) and v = x0 mod n
                     r = r % n
+                    if verbose:
+                        print('Use (r,s) signature pair, sent by {}'.format(sender))
+                        print('Use shared key to decrypt file from {}'.format(sender))
+                        print('Truncated hash of message: e = {}'.format(e))
+                        print('v = (e/s)*G + (r/s)*Q = {}'.format(v))
+                        print('r = {}'.format(r))
+                        if v == r:
+                            print('v == r, so the signature is valid')
+                        else:
+                            print('v != r, so the signature is not valid')
                     if v == r:
                         print('{} sent you a file called {}, and the signature is authentic'.format(sender,plainName))
                     else:
@@ -381,10 +421,11 @@ if __name__ == "__main__":
     b = 1 # coefficients of curve
     g = (9,14781619447589544791020593568409986887264606134616475288964881837755586237401) # base point
     n = 2**252 + 27742317777372353535851937790883648493 # (prime) order of subgroup
-    h = 2**3 # cofactor of subgroup
+    h = 2**3 # cofactor of subgroup, h = (number of points on curve / n)
     
     server = Pyro4.Proxy("PYRONAME:server")
     name = ''
+    verbose = True
     while name == '':
         name = input('What is your name? > ').strip()
     sharedKeys = {}
@@ -405,6 +446,7 @@ What would you like to do {}?
 6. Check for messages
 7. Send a file
 8. Check for files
+9. Toggle verbose mode
 q. Quit
         '''.format(name))
 
@@ -427,7 +469,14 @@ q. Quit
             elif choice == '7':
                 sendFile()
             elif choice == '8':
-                checkFiles()    
+                checkFiles()
+            elif choice == '9':
+                if verbose:
+                    verbose = False
+                    print('Verbose mode off')
+                else:
+                    verbose = True
+                    print('Verbose mode on')
             elif choice == 'q' or choice == 'Q':
                 print('Goodbye', name)
                 quit()
