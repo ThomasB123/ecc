@@ -4,7 +4,6 @@
 # python server.py
 # python client.py
 
-import sympy # used isprime() function
 import Pyro4
 from Cryptodome.Cipher import AES
 import base64 # built in
