@@ -34,7 +34,7 @@ def move(xa,ya,xb,yb):
     yd = m*(xa-xd) - ya # flipped in x axis here
     return xd%p,yd%p
 
-def K(start,k): # calculare k*start
+def K(start,k): # calculate k*start
     # k is integer and start is point
     result = (None,None)
     addend = start
@@ -89,9 +89,10 @@ def newContact():
         sharedKeys[person] = sharedKey
         if verbose:
             print('Your shared key is calculated by h*d*Q, where h is the cofactor, d is your private key, and Q is {}\'s public key'.format(person))
-            print('{}\'s public key is {}, multiplying by your private key gives {}'.format(person,publicKeys[person],pubPriv))
-            print('Then multiplying this by the cofactor h={} gives {}'.format(h,pubPrivh))
-            print('Therefore, your shared key with {} is {}'.format(person,sharedKey))
+            print('{}\'s public key is (0x{:x}, 0x{:x})'.format(person,publicKeys[person][0],publicKeys[person][1]))
+            print('Multiplying by your private key gives (0x{:x}, 0x{:x})'.format(pubPriv[0],pubPriv[1]))
+            print('Then multiplying by the cofactor h={} gives (0x{:x}, 0x{:x})'.format(h,pubPrivh[0],pubPrivh[1]))
+            print('Therefore, your shared key with {} is 0x{:x}'.format(person,sharedKey))
         else:
             print('Your shared key with {} is 0x{:x}'.format(person,sharedKey))
 
@@ -141,9 +142,9 @@ def sendMessage():
         server.receiveMessage(recipient,name,nonce,ciphertext,tag,r,s) # encrypt here
         if verbose:
             print('Use shared key to encrypt your message to {}'.format(recipient))
-            print('Truncated hash of message: e = {}'.format(e))
-            print('Select random k, calculate r = kG = {}'.format(r))
-            print('s = (e+key*r)/k = {}'.format(s))
+            print('Truncated hash of message: e = 0x{:x}'.format(e))
+            print('Select random k, calculate r = kG = 0x{:x}'.format(r))
+            print('s = (e+key*r)/k = 0x{:x}'.format(s))
             print('Signature is pair (r,s)')
         print('Message sent to {}'.format(recipient))
 
@@ -187,9 +188,9 @@ def checkMessages():
                     if verbose:
                         print('Use (r,s) signature pair, sent by {}'.format(sender))
                         print('Use shared key to decrypt message from {}'.format(sender))
-                        print('Truncated hash of message: e = {}'.format(e))
-                        print('v = (e/s)*G + (r/s)*Q = {}'.format(v))
-                        print('r = {}'.format(r))
+                        print('Truncated hash of message: e = 0x{:x}'.format(e))
+                        print('v = (e/s)*G + (r/s)*Q = 0x{:x}'.format(v))
+                        print('r = 0x{:x}'.format(r))
                         if v == r:
                             print('v == r, so the signature is valid')
                         else:
@@ -212,9 +213,9 @@ def sendSignature(): # ECDSA algorithm
     s = inverse(n,k)*(e+privateKey*r) % n # compute s = k^-1{e + privateKey(r)} mod n
     server.receiveSignature(name,r,s) # signature for message m is (r,s)
     if verbose:
-        print('Truncated hash of message: e = {}'.format(e))
-        print('Select random k, calculate r = kG = {}'.format(r))
-        print('s = (e+key*r)/k = {}'.format(s))
+        print('Truncated hash of message: e = 0x{:x}'.format(e))
+        print('Select random k, calculate r = kG = 0x{:x}'.format(r))
+        print('s = (e+key*r)/k = 0x{:x}'.format(s))
         print('Signature is pair (r,s)')
     print('Signature sent.')
 
@@ -256,9 +257,9 @@ def checkSignature():
         r = r % n
         if verbose:
             print('Use (r,s) signature pair, sent by {}'.format(person))
-            print('Truncated hash of message: e = {}'.format(e))
-            print('v = (e/s)*G + (r/s)*Q = {}'.format(v))
-            print('r = {}'.format(r))
+            print('Truncated hash of message: e = 0x{:x}'.format(e))
+            print('v = (e/s)*G + (r/s)*Q = 0x{:x}'.format(v))
+            print('r = 0x{:x}'.format(r))
             if v == r:
                 print('v == r, so the signature is valid')
             else:
@@ -326,9 +327,9 @@ def sendFile():
         server.receiveFile(recipient,name,nameEncrypted,nsz,encrypted,fsz,iv,r,s)
         if verbose:
             print('Use shared key to encrypt your file to {}'.format(recipient))
-            print('Truncated hash of message: e={}'.format(e))
-            print('Select random k, calculate r=kG={}'.format(r))
-            print('s=(e+key*r)/k={}'.format(s))
+            print('Truncated hash of message: e=0x{:x}'.format(e))
+            print('Select random k, calculate r=kG=0x{:x}'.format(r))
+            print('s=(e+key*r)/k=0x{:x}'.format(s))
             print('Signature is pair (r,s)')
         print('File sent to {}'.format(recipient))
 
@@ -394,9 +395,9 @@ def checkFiles():
                     if verbose:
                         print('Use (r,s) signature pair, sent by {}'.format(sender))
                         print('Use shared key to decrypt file from {}'.format(sender))
-                        print('Truncated hash of message: e = {}'.format(e))
-                        print('v = (e/s)*G + (r/s)*Q = {}'.format(v))
-                        print('r = {}'.format(r))
+                        print('Truncated hash of message: e = 0x{:x}'.format(e))
+                        print('v = (e/s)*G + (r/s)*Q = 0x{:x}'.format(v))
+                        print('r = 0x{:x}'.format(r))
                         if v == r:
                             print('v == r, so the signature is valid')
                         else:
@@ -507,4 +508,8 @@ give intuitive definitions, only define ECDLP, not also ECDHP
 7 slides max, gives 1 min 25 secs per slide
 say that various things make curve safe, here they are but I don't have time to go through them, maybe most intuitive one
 relating to RSA is good since can assume audience knowledge of RSA
+talk about the need for ECC as more mobile devices need encryption and ECC is faster and easier, less computing power
+add an RSA scheme to the timing graph to compare efficiency, for equivalent key sizes
+Fill empty white space on deliverables slide with screenshots or examples from different stages of progress? not marked so maybe not
+Flesh out last 2 slides and organise thoughts more.
 '''
