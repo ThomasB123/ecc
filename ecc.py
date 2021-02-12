@@ -18,6 +18,7 @@
 
 # cipolla's algorithm
 # euclid's extended algorithm is *pow() thing
+# pow(base,exp,mod) = base^exp % mod
 
 # (y,p) are coprime, gives you an a,b such that ay+bp = 1 . ay = 1 mod p. a is 'mod p inverse of y'
 # use 2y instead , multiply by a gives same as dividing by 2y in mod p
@@ -29,15 +30,14 @@
 # for literature review, have section on attacks, such as timing
 
 def binary(num): # convert denary number to binary
-    x = 600 # max index of number input, i.e. 2^x
     out = []
-    for i in range(x+1):
-      if num >= 2**x:
-        out.insert(0,1) # flipped so least significant bit first
-        num -= 2**x
-      else:
-        out.insert(0,0) # flipped so least significant bit first
-      x -= 1
+    while num > 0:
+        if num % 2 == 1:
+            num -= 1
+            out.append(1)
+        else:
+            out.append(0)
+        num /= 2
     return out
 
 def move(xa,ya,xb,yb):
@@ -54,11 +54,11 @@ def move(xa,ya,xb,yb):
 def K(start,k):
     points = [start]
     bina = binary(k)
-    for i in range(len(bina)-bina.index(1)-1):
+    for i in range(len(bina)-bina.index(1)):
         points.append(move(points[-1][0],points[-1][1],points[-1][0],points[-1][1])) # double
     index = bina.index(1) # find first occurence of 1 in the binary representation
     out = points[index] # start with smallest multiple of g
-    for i in range(index+1,len(bina)-1): # count up from the smallest multiple
+    for i in range(index+1,len(bina)): # count up from the smallest multiple
         if bina[i] == 1:
             out = move(out[0],out[1],points[i][0],points[i][1])
     return out
@@ -233,3 +233,12 @@ print('Secret value = {}\n'.format(k[0]))
 
 # investigate calculating all powers of 2 then only adding neccessary ones to make ka/kb rather than only calculating up to neccessary
 # is it much slower? should make timing attack more difficult
+
+# TLS handshake
+# use keys for AES symmetric
+# digital signature
+
+# draw points in box mod p like in slides
+
+# generate a new random number for each exchange
+# sony ps3 hack, key generation
