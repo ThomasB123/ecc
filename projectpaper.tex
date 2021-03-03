@@ -1,3 +1,4 @@
+
 \documentclass[12pt,a4paper]{article}
 \usepackage{times}
 \usepackage{durhampaper}
@@ -12,7 +13,7 @@
 \supervisor{M. Bordewich}
 \degree{BSc Computer Science}
 
-\date{}
+\date{\today}
 
 \begin{document}
 
@@ -22,10 +23,28 @@
 These instructions give you guidelines for preparing the final paper.  DO NOT change any settings, such as margins and font sizes.  Just use this as a template and modify the contents into your final paper.  Do not cite references in the abstract.
 
 The abstract must be a Structured Abstract with the headings {\bf Context/Background}, {\bf Aims}, {\bf Method}, {\bf Results}, and {\bf Conclusions}.  This section should not be longer than half of a page, and having no more than one or two sentences under each heading is advised.
+
+\paragraph{Background} -
+Diffie-Hellman, RSA, ...
+
+\paragraph{Aims} -
+Create system implementing ECC safe curves
+
+\paragraph{Method} -
+Euclid's extended algorithm, point addition, point multiplication, ...
+
+\paragraph{Results} -
+Cannot discover information about private key, enables secure communication
+
+\paragraph{Conclusions} -
+Strength of ECC, smaller key size than RSA, much more suitable for mobile devices
+
 \end{abstract}
 
 \begin{keywords}
 Put a few keywords here.
+
+Elliptic Curve Cryptography, Elliptic Curve Diffie-Hellman, Elliptic Curve Digital Signature Algorithm
 \end{keywords}
 
 \section{Introduction}
@@ -33,12 +52,28 @@ This section briefly introduces the general project background, the research que
 
 Note that the whole report, including the references, should not be longer than 20 pages in length.  The system will not accept any report longer than 20 pages.  It should be noted that not all the details of the work carried out in the project can be represented in 20 pages.  It is therefore vital that the Project Log book be kept up to date as this will be used as supplementary material when the project paper is marked.  There should be between 10 and 20 referenced papers---references to Web based pages should be less than 10\%.
 
+- Abstract \& Introduction make 5\% of paper
+
+- Adequacy of Abstract
+
+- Description of background - Diffie-Hellman, RSA, ECC
+
+- Discussion of aims and achievements - Aimed to create system which implemented safe curves 
+
+
 \section{Related Work}
 This section presents a survey of existing work on the problems that this project addresses.  it should be between 2 to 4 pages in length.  The rest of this section shows the formats of subsections as well as some general formatting information for tables, figures, references and equations.
+
+- 15\% of paper
+
+- Adequacy of literature surveyed
+
+- Critical analysis
 
 \subsection{Main Text}
 
 The font used for the main text should be Times New Roman (Times) and the font size should be 12.  The first line of all paragraphs should be indented by 0.25in, except for the first paragraph of each section, subsection, subsubsection etc. (the paragraph immediately after the header) where no indentation is needed.
+
 
 \subsection{Figures and Tables}
 In general, figures and tables should not appear before they are cited.  Place figure captions below the figures; place table titles above the tables.  If your figure has two parts, for example, include the labels ``(a)'' and ``(b)'' as part of the artwork.  Please verify that figures and tables you mention in the text actually exist.  make sure that all tables and figures are numbered as shown in Table \ref{units} and Figure 1.
@@ -66,15 +101,45 @@ This section presents the solutions to the problems in detail.  The design and i
 
 This section should be between 4 to 7 pages in length.
 
+- 25\% of paper
+
+- Adequacy of the solution - 
+
+- Specification and design - written in python, command line interface
+
+- Outline of implementation issues - issues with communicating over a network, client instances must be on same local device
+
+- Description of tools used - various python libraries: Pyro4, AES, base64, hashlib, secrets
+
+- Verification and Validation - 
+
+- Discussion of testing - Graphs from testing of security and efficiency of system: number of 1 bits vs time, log key value vs time, various curves vs time.
+
 \section{Results}
 
 this section presents the results of the solutions.  It should include information on experimental settings.  The results should demonstrate the claimed benefits/disadvantages of the proposed solutions.
 
 This section should be between 2 to 3 pages in length.
 
+- 25\% of paper
+
+- Description of the evaluation method adopted - evaluated by trying to break the encryption and demonstrating that it would take an infeasible amount of time
+
+- Clarity of results
+
 \section{Evaluation}
 
 This section should between 1 to 2 pages in length.
+
+- 20\% of paper
+
+- Suitability of approach
+
+- Discussion of strengths and limitations of the system - limitations with communicating over networks, works well with multiple client instances on a local machine
+
+- Discussion of algorithms used - ECDH, ECDSA, point addition and point multiplication
+
+- Appraisal of project organisation
 
 \section{Conclusions}
 
@@ -97,6 +162,14 @@ V. & Evaluation & 1-2 \\ \hline
 VI. & Conclusions & 1 \\ \hline
 \end{tabular}
 \end{table}
+
+- 5\% of paper
+
+- Description of the main findings
+
+- Clarity of conclusions
+
+- Discussion of further work
 
 
 \bibliography{projectpaper}
