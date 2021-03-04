@@ -22,3 +22,318 @@
   ,journal = {J. Name. Stand. Abbrev.}
   ,note = {submitted for publication}
 }
+
+
+@ARTICLE{1055638,
+    author={W. {Diffie} and M. {Hellman}},
+    journal={IEEE Transactions on Information Theory},
+    title={New directions in cryptography},
+    year={1976},
+    volume={22},
+    number={6},
+    pages={644-654},
+    doi={10.1109/TIT.1976.1055638}
+}
+
+@article{10.1145/359340.359342,
+    author = {Rivest, R. L. and Shamir, A. and Adleman, L.},
+    title = {A Method for Obtaining Digital Signatures and Public-Key Cryptosystems},
+    year = {1978},
+    issue_date = {Feb. 1978},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    volume = {21},
+    number = {2},
+    issn = {0001-0782},
+    url = {https://doi.org/10.1145/359340.359342},
+    doi = {10.1145/359340.359342},
+    abstract = {An encryption method is presented with the novel property that publicly revealing an encryption key does not thereby reveal the corresponding decryption key. This has two important consequences: (1) Couriers or other secure means are not needed to transmit keys, since a message can be enciphered using an encryption key publicly revealed by the intented recipient. Only he can decipher the message, since only he knows the corresponding decryption key. (2) A message can be “signed” using a privately held decryption key. Anyone can verify this signature using the corresponding publicly revealed encryption key. Signatures cannot be forged, and a signer cannot later deny the validity of his signature. This has obvious applications in “electronic mail” and “electronic funds transfer” systems. A message is encrypted by representing it as a number M, raising M to a publicly specified power e, and then taking the remainder when the result is divided by the publicly specified product, n, of two large secret primer numbers p and q. Decryption is similar; only a different, secret, power d is used, where e * d ≡ 1(mod (p - 1) * (q - 1)). The security of the system rests in part on the difficulty of factoring the published divisor, n.},
+    journal = {Commun. ACM},
+    month = feb,
+    pages = {120–126},
+    numpages = {7},
+    keywords = {electronic mail, security, privacy, electronic funds transfer, cryptography, prime number, digital signatures, factorization, authentication, public-key cryptosystems, message-passing}
+}
+
+@INPROCEEDINGS{4568001,
+    author={L. {Adleman}},
+    booktitle={20th Annual Symposium on Foundations of Computer Science (sfcs 1979)}, 
+    title={A subexponential algorithm for the discrete logarithm problem with applications to cryptography}, 
+    year={1979},
+    volume={},
+    number={},
+    pages={55-60},
+    doi={10.1109/SFCS.1979.2}
+}
+
+@InProceedings{10.1007/3-540-39799-X_31,
+    author="Miller, Victor S.",
+    editor="Williams, Hugh C.",
+    title="Use of Elliptic Curves in Cryptography",
+    booktitle="Advances in Cryptology --- CRYPTO '85 Proceedings",
+    year="1986",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="417--426",
+    abstract="We discuss the use of elliptic curves in cryptography. In particular, we propose an analogue of the Diffie-Hellmann key exchange protocol which appears to be immune from attacks of the style of Western, Miller, and Adleman. With the current bounds for infeasible attack, it appears to be about 20{\%} faster than the Diffie-Hellmann scheme over GF(p). As computational power grows, this disparity should get rapidly bigger.",
+    isbn="978-3-540-39799-1"
+}
+
+@article{koblitz1987elliptic,
+    title={Elliptic curve cryptosystems},
+    author={Koblitz, Neal},
+    journal={Mathematics of computation},
+    volume={48},
+    number={177},
+    pages={203--209},
+    year={1987}
+}
+
+@article{koblitz2000state,
+    title={The state of elliptic curve cryptography},
+    author={Koblitz, Neal and Menezes, Alfred and Vanstone, Scott},
+    journal={Designs, codes and cryptography},
+    volume={19},
+    number={2-3},
+    pages={173--193},
+    year={2000},
+    publisher={Springer}
+}
+
+@article{lopez2000overview,
+    title={An overview of elliptic curve cryptography},
+    author={López, Julio and Dahab, Ricardo},
+    year={2000},
+    publisher={Citeseer}
+}
+
+@inproceedings{10.1145/570681.570691,
+    author = {Gupta, Vipul and Gupta, Sumit and Chang, Sheueling and Stebila, Douglas},
+    title = {Performance Analysis of Elliptic Curve Cryptography for SSL},
+    year = {2002},
+    isbn = {1581135858},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    url = {https://doi.org/10.1145/570681.570691},
+    doi = {10.1145/570681.570691},
+    abstract = {Elliptic Curve Cryptography (ECC) is emerging as an attractive public-key cryptosystem for mobile/wireless environments. Compared to traditional cryptosystems like RSA, ECC offers equivalent security with smaller key sizes, which results in faster computations, lower power consumption, as well as memory and bandwidth savings. This is especially useful for mobile devices which are typically limited in terms of their CPU, power and network connectivity. However, the true impact of any public-key cryptosystem can only be evaluated in the context of a security protocol. This paper presents a first estimate of the performance improvements that can be expected in SSL (Secure Socket Layer), the dominant security protocol on the Web today, by adding ECC support.},
+    booktitle = {Proceedings of the 1st ACM Workshop on Wireless Security},
+    pages = {87–94},
+    numpages = {8},
+    keywords = {wireless, internet security, secure socket layer (SSL), elliptic curve cryptography (ECC)},
+    location = {Atlanta, GA, USA},
+    series = {WiSE '02}
+}
+
+@InProceedings{10.1007/3-540-36400-5_26,
+    author="Gura, Nils
+    and Chang Shantz, Sheueling
+    and Eberle, Hans
+    and Gupta, Sumit
+    and Gupta, Vipul
+    and Finchelstein, Daniel
+    and Goupy, Edouard
+    and Stebila, Douglas",
+    editor="Kaliski, Burton S.
+    and Ko{\c{c}}, {\c{c}}etin K.
+    and Paar, Christof",
+    title="An End-to-End Systems Approach to Elliptic Curve Cryptography",
+    booktitle="Cryptographic Hardware and Embedded Systems - CHES 2002",
+    year="2003",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="349--365",
+    abstract="Since its proposal by Victor Miller [17] and Neal Koblitz [15] in the mid 1980s, Elliptic Curve Cryptography (ECC) has evolved into a mature public-key cryptosystem. Offering the smallest key size and the highest strength per bit, its computational efficiency can benefit both client devices and server machines. We have designed a programmable hardware accelerator to speed up point multiplication for elliptic curves over binary polynomial fields GF(2m). The accelerator is based on a scalable architecture capable of handling curves of arbitrary field degrees up to m = 255. In addition, it delivers optimized performance for a set of commonly used curves through hard-wired reduction logic. A prototype implementation running in a Xilinx XCV2000E FPGA at 66.4 MHz shows a performance of 6987 point multiplications per second for GF(2163). We have integrated ECC into OpenSSL, today's dominant implementation of the secure Internet protocol SSL, and tested it with the Apache web server and open-source web browsers.",
+    isbn="978-3-540-36400-9"
+}
+
+@INPROCEEDINGS{1244630,
+    author={G. V. S. {Raju} and R. {Akbani}},
+    booktitle={SMC'03 Conference Proceedings. 2003 IEEE International Conference on Systems, Man and Cybernetics. Conference Theme - System Security and Assurance (Cat. No.03CH37483)},
+    title={Elliptic curve cryptosystem and its applications},
+    year={2003},
+    volume={2},
+    number={},
+    pages={1540-1543 vol.2},
+    doi={10.1109/ICSMC.2003.1244630}
+}
+
+@book{hankerson2003guide,
+    title={Guide to elliptic curve cryptography},
+    author={Hankerson, Darrel and Menezes, Alfred J and Vanstone, Scott},
+    year={2003},
+    publisher={Springer Science \& Business Media},
+    doi={10.1007/b97644}
+}
+
+@InProceedings{10.1007/978-3-540-28632-5_9,
+    author="Gura, Nils
+    and Patel, Arun
+    and Wander, Arvinderpal
+    and Eberle, Hans
+    and Shantz, Sheueling Chang",
+    editor="Joye, Marc
+    and Quisquater, Jean-Jacques",
+    title="Comparing Elliptic Curve Cryptography and RSA on 8-bit CPUs",
+    booktitle="Cryptographic Hardware and Embedded Systems - CHES 2004",
+    year="2004",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="119--132",
+    abstract="Strong public-key cryptography is often considered to be too computationally expensive for small devices if not accelerated by cryptographic hardware. We revisited this statement and implemented elliptic curve point multiplication for 160-bit, 192-bit, and 224-bit NIST/SECG curves over GF(p) and RSA-1024 and RSA-2048 on two 8-bit microcontrollers. To accelerate multiple-precision multiplication, we propose a new algorithm to reduce the number of memory accesses.",
+    isbn="978-3-540-28632-5"
+}
+
+@article{jurivsic1997elliptic,
+    title={Elliptic curves and cryptography},
+    author={Juri{\v{s}}ic, Aleksandar and Menezes, A},
+    journal={Dr. Dobb’s Journal},
+    pages={26--36},
+    year={1997}
+}
+
+@article{nir2018elliptic,
+    title={Elliptic curve cryptography (ecc) cipher suites for transport layer security (tls) versions 1.2 and earlier},
+    author={Nir, Yoav and Josefsson, Simon and Pegourie-Gonnard, Manuel},
+    journal={Internet Requests for Comments, RFC Editor, RFC},
+    volume={8422},
+    year={2018},
+    url={https://www.hjp.at/doc/rfc/rfc8422.html}
+}
+
+@InProceedings{10.1007/11745853_14,
+    author="Bernstein, Daniel J.",
+    editor="Yung, Moti
+    and Dodis, Yevgeniy
+    and Kiayias, Aggelos
+    and Malkin, Tal",
+    title="Curve25519: New Diffie-Hellman Speed Records",
+    booktitle="Public Key Cryptography - PKC 2006",
+    year="2006",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="207--228",
+    abstract="This paper explains the design and implementation of a high-security elliptic-curve-Diffie-Hellman function achieving record-setting speeds: e.g., 832457 Pentium III cycles (with several side benefits: free key compression, free key validation, and state-of-the-art timing-attack protection), more than twice as fast as other authors' results at the same conjectured security level (with or without the side benefits).",
+    isbn="978-3-540-33852-9"
+}
+
+@article{anoop2007elliptic,
+    title={Elliptic curve cryptography, an implementation guide},
+    author={Anoop, MS},
+    journal={online Implementation Tutorial, Tata Elxsi, India},
+    volume={5},
+    year={2007}
+}
+
+@INPROCEEDINGS{4238997,
+    author={K. {Malhotra} and S. {Gardner} and R. {Patz}},
+    booktitle={2007 IEEE International Conference on Networking, Sensing and Control},
+    title={Implementation of Elliptic-Curve Cryptography on Mobile Healthcare Devices},
+    year={2007},
+    volume={},
+    number={},
+    pages={239-244},
+    doi={10.1109/ICNSC.2007.372784},
+    organization={IEEE}
+}
+
+@article{10.1145/1386853.1378356,
+    author = {Kapoor, Vivek and Abraham, Vivek Sonny and Singh, Ramesh},
+    title = {Elliptic Curve Cryptography},
+    year = {2008},
+    issue_date = {May 2008},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    volume = {2008},
+    number = {May},
+    url = {https://doi.org/10.1145/1386853.1378356},
+    doi = {10.1145/1386853.1378356},
+    abstract = {This paper describes the Elliptic Curve Cryptography algorithm and its suitability for smart cards.},
+    journal = {Ubiquity},
+    month = may,
+    articleno = {7},
+    numpages = {8}
+}
+
+@book{silverman2009arithmetic,
+    title={The arithmetic of elliptic curves},
+    author={Silverman, Joseph H},
+    volume={106},
+    year={2009},
+    publisher={Springer Science \& Business Media}
+}
+
+@article{brown2009standards,
+  title={Standards for Efficient Cryptography 1 (SEC-1)},
+  author={Brown, DRL},
+  journal={Standards for Efficient Cryptography, 2009},
+  year={2009}
+}
+
+
+@inproceedings{hotz2010console,
+    title={Console hacking 2010-ps3 epic fail},
+    author={Hotz, George},
+    booktitle={27th Chaos Communications Congress},
+    year={2010},
+    url={https://fahrplan.events.ccc.de/congress/2010/Fahrplan/events/4087.en.html}
+}
+
+@article{Basu2012ANP,
+    title={A New Parallel Window-Based Implementation of the Elliptic Curve Point Multiplication in Multi-Core Architectures},
+    author={Saikat Basu},
+    journal={Int. J. Netw. Secur.},
+    year={2012},
+    volume={14},
+    pages={101-108}
+}
+
+@InProceedings{10.1007/978-3-662-45472-5_11,
+    author="Bos, Joppe W.
+    and Halderman, J. Alex
+    and Heninger, Nadia
+    and Moore, Jonathan
+    and Naehrig, Michael
+    and Wustrow, Eric",
+    editor="Christin, Nicolas
+    and Safavi-Naini, Reihaneh",
+    title="Elliptic Curve Cryptography in Practice",
+    booktitle="Financial Cryptography and Data Security",
+    year="2014",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="157--175",
+    abstract="In this paper we perform a review of elliptic curve cryptography (ECC) as it is used in practice today in order to reveal unique mistakes and vulnerabilities that arise in implementations of ECC. We study four popular protocols that make use of this type of public-key cryptography: Bitcoin, secure shell (SSH), transport layer security (TLS), and the Austrian e-ID card. We are pleased to observe that about 1 in 10 systems support ECC across the TLS and SSH protocols. However, we find that despite the high stakes of money, access and resources protected by ECC, implementations suffer from vulnerabilities similar to those that plague previous cryptographic systems.",
+    isbn="978-3-662-45472-5"
+}
+
+@misc{bernstein2013safecurves,
+    title={SafeCurves: choosing safe curves for elliptic-curve cryptography. https://safecurves.cr.yp.to, accessed 25 October 2020},
+    author={Bernstein, Daniel J and Lange, Tanja},
+    year={2013},
+    url={https://safecurves.cr.yp.to}
+}
+
+@InProceedings{10.1007/978-3-662-44709-3_5,
+    author="Benger, Naomi
+    and van de Pol, Joop
+    and Smart, Nigel P.
+    and Yarom, Yuval",
+    editor="Batina, Lejla
+    and Robshaw, Matthew",
+    title="``Ooh Aah... Just a Little Bit'' : A Small Amount of Side Channel Can Go a Long Way",
+    booktitle="Cryptographic Hardware and Embedded Systems -- CHES 2014",
+    year="2014",
+    publisher="Springer Berlin Heidelberg",
+    address="Berlin, Heidelberg",
+    pages="75--92",
+    abstract="We apply the Flush+Reload side-channel attack based on cache hits/misses to extract a small amount of data from OpenSSL ECDSA signature requests. We then apply a ``standard'' lattice technique to extract the private key, but unlike previous attacks we are able to make use of the side-channel information from almost all of the observed executions. This means we obtain private key recovery by observing a relatively small number of executions, and by expending a relatively small amount of post-processing via lattice reduction. We demonstrate our analysis via experiments using the curve secp256k1 used in the Bitcoin protocol. In particular we show that with as little as 200 signatures we are able to achieve a reasonable level of success in recovering the secret key for a 256-bit curve. This is significantly better than prior methods of applying lattice reduction techniques to similar side channel information.",
+    isbn="978-3-662-44709-3"
+}
+
+@book{barker2020recommendation,
+    title={Recommendation for key management: Part 1: General},
+    author={Barker, Elaine and Barker, William and Burr, William and Polk, William and Smid, Miles and others},
+    year={2020},
+    publisher={National Institute of Standards and Technology, Technology Administration}
+}
