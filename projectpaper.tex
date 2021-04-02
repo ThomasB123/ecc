@@ -51,22 +51,6 @@ Safe Curves, User Interface (UI)
 
 
 \section{Introduction}
-The whole report, including references, should not be longer than 20 pages in length.
-It should be noted that not all the details of the work carried out in the project can be represented in 20 pages.
-It is therefore vital that the Project Log book be kept up to date as this will be used as supplementary material when the project paper is marked.
-There should be between 10 and 20 referenced papers---references to Web based pages should be less than 10\%.
-
-This section briefly introduces the general project background, the research question you are addressing, and the project objectives.
-It should be between 2 to 3 pages in length.
-
-- Abstract \& Introduction make 5\% of paper
-
-- Adequacy of Abstract
-
-- Description of background - Diffie-Hellman, RSA, ECC
-
-- Discussion of aims and achievements - Aimed to create system which implemented safe curves 
-
 There were a total of nine objectives for this project, split equally into three sections: basic, intermediate, and advanced. 
 
 The first basic objective was to create a basic working ECC system which computed the essential functions required. 
@@ -84,15 +68,6 @@ The final objective was to analyse the code for vulnerabilities, such as side-ch
 
 
 \section{Related Work}
-This section presents a survey of existing work on the problems that this project addresses. 
-it should be between 2 to 4 pages in length. 
-
-- 15\% of paper
-
-- Adequacy of literature surveyed
-
-- Critical analysis
-
 Cryptography is the study of mathematical systems for solving two kinds of security problems: privacy and authentication \cite{1055638}. 
 A privacy system prevents the extraction of information by unauthorised parties from messages transmitted over a public channel, assuring it is read only by the intended recipient. 
 An authentication system prevents the unauthorised injection of messages into a public channel, assuring the legitimacy of the sender. 
@@ -135,7 +110,7 @@ The diagram below illustrates the protocol for Alice to send a message to Bob:
 
 \begin{figure}[htb]
     \centering
-    \includegraphics[width=0.5\textwidth]{figures/Message Exchange Diagram.png}
+    \includegraphics[width=\textwidth]{figures/Message Exchange Diagram.png}
     \caption{Message Exchange Diagram}
     \label{fig:messages}
 \end{figure}
@@ -310,10 +285,12 @@ The system was created entirely in Python, I chose this language because of both
 and its large number of well-established modules for computing generic cryptographic functions. 
 Since my system carries out operations involving huge integers, other less abstracted languages would 
 have required much more involvement at the lower level which would only detract from my progress with the actual aims of the project. 
-The specific Python modules that I used in my system are: "Pyro4", "AES" from "PyCryptodome", "base64", "hashlib", "secrets", and "os". 
-"Pyro4" is used for remote object invocation
+The specific Python modules that I used in my system are: "Pyro4", "AES" from "Cryptodome", "base64", "hashlib", "secrets", and "os". 
+"Pyro4" is used for remote object invocation, "AES" for symmetric encryption, "base64" for decoding the AES ciphertext, 
+and "hashlib" for generating hashes using SHA-2. 
+I chose to use "secrets" because after my initial implementation using "random", I realised that this wasn't cryptographically secure. 
+I use the "os" module for file management, since any files which the user receives are stored in a subdirectory labelled by their name. 
 I only used long standing and well used libraries because of \cite{ducklin2021python}. 
-I chose to use secrets because after my initial implementation using "random", I realised that this wasn't cryptographically secure. 
 
 The system can be started and interacted with via a command line interface, this was chosen since it allowed me to focus 
 more on the protocols and back-end of the system rather than on designing a visually appealing graphical user interface, 
@@ -329,6 +306,103 @@ to recreate Signal or WhatsApp, network communication is not necessary.
 
 
 \subsection{Verification and Validation} \label{Verification}
+This section will run through an example interaction between Alice and Bob using the system, 
+specifically the exchange shown in Figure \ref{fig:messages}. 
+This will demonstrate the calculations performed by the system and the validity of these calculations. 
+All large numbers here are shown in hexadecimal, for brevity. 
+This interaction uses an elliptic curve known as Curve25519 \cite{10.1007/11745853_14}, 
+which can be expressed by the equation: 
+\begin{equation}
+    y^2 = x^3 + 486662x^2 + x \pmod{2^{255}-19}.
+\end{equation}
+This curve is most often expressed in the Montgomery \cite{montgomery1987speeding} form as above ($By^2 = x^3 + Ax^2 + x$), 
+but can be converted to the more traditional short Weierstrass form shown earlier ($y^2 = x^3 + ax + b$) through substitution. 
+Curve25519 has the base point $g = $ \\
+({\footnotesize $0x9$}, {\footnotesize $0x20ae19a1b8a086b4e01edd2c7748d14c923d4d7e6d7c61b229e9c5a27eced3d9$}), \\
+which has prime order $n = 2^{252} +$ {\footnotesize $0x14def9dea2f79cd65812631a5cf5d3ed$}. 
+The curve's cofactor is $h = 8$. 
+
+\subsubsection{Key Generation}
+Alice's randomly generated private key is: \\
+{\footnotesize $0x69837a193b0f43bac8b32a30396a189c51706d49fcbb7c0e099b8f1b4bcb969$}, \\
+so when she multiplies the base point $g$ by this number, she obtains the point \\
+({\footnotesize $0x67bf8995372ae1a9329f441d955193623aedf68a01ee5e2af7c33eabc27d9fd$}, \\
+{\footnotesize $0xbc9a2fe41909056a46927d7c3af1ffed8e802854a32378df1845f819c016bdb$}) \\
+as her public key.
+
+Generated in the same way, Bob's private key is \\
+{\footnotesize $0xf7d16d30314975879241ab2a17fdb1194fa2a7319b0b3331590c8482437f0b3$}, \\
+and his public key is \\
+({\footnotesize $0x2ffeaa851900d44817e3888854d958a91b9e1127ed0057a2e6796f3a1115cda$}, \\
+{\footnotesize $0x3fd4639dbd63076c19aeb51816711d7de4331cb75ec3c89ea1c387297660809c$}).
+
+\subsubsection{Shared Key Establishment}
+Alice calculates the shared key by $h \cdot d \cdot Q$, 
+where $h$ is the cofactor, $d$ is Alice's private key, and $Q$ is Bob's public key. \\
+Firstly, $d \cdot Q = $\\
+({\footnotesize $0x7bb294204beba6ba902f5a21e14c4d5abc953d52b79be70377104f72de310a4a$}, \\
+{\footnotesize $0x6d9d2ec13fc729a629259a1fcdf96d4a66e7e4e1365f54ed5fa56e235bc74b5$}) \\
+Then multiplying by $h = 8$ gives \\
+({\footnotesize $0x37ae8d3aa1495b39ead29b8abe24e7d8d7f2fb05186216a37c4b55708ead1fd$}, \\
+{\footnotesize $0x29aecf95ba814e3e52866f5daa243d3366e8c8d0255117ee047822319b44222c$}) \\
+Therefore, Alice calculates the shared key as: 
+\begin{equation}
+    0x37ae8d3aa1495b39ead29b8abe24e7d8d7f2fb05186216a37c4b55708ead1fd.
+\end{equation}
+
+Bob also calculates $h \cdot d \cdot Q$, except here $d$ is his private key and $Q$ is Alice's public key. 
+$d \cdot Q = $ \\
+({\footnotesize $0x7bb294204beba6ba902f5a21e14c4d5abc953d52b79be70377104f72de310a4a$}, \\
+{\footnotesize $0x6d9d2ec13fc729a629259a1fcdf96d4a66e7e4e1365f54ed5fa56e235bc74b5$}) \\
+Then multiplying by $h = 8$ gives \\
+({\footnotesize $0x37ae8d3aa1495b39ead29b8abe24e7d8d7f2fb05186216a37c4b55708ead1fd$}, \\
+{\footnotesize $0x29aecf95ba814e3e52866f5daa243d3366e8c8d0255117ee047822319b44222c$}) \\
+Bob's calculation of the shared key is: 
+\begin{equation}
+    0x37ae8d3aa1495b39ead29b8abe24e7d8d7f2fb05186216a37c4b55708ead1fd.
+\end{equation}
+
+This demonstrates that the ECDH part of the system works, since Alice and Bob each calculate the same shared key. 
+Critically, from a security perspective, only Alice and Bob can possibly know the value of this shared secret key 
+because it was calculated using their respective private keys (which only they have access to). 
+This makes it suitable for use as a symmetric AES key for end-to-end-encrypted communication between Alice and Bob. 
+
+
+\subsubsection{Signature Generation}
+The system allows Alice to send a message or file to Bob which is not only encrypted using the shared key that they have just established (through ECDH), 
+but which is also digitally signed in such a way that Bob can verify the authenticity of the message. 
+This subsection shows an example message sent by Alice to Bob, as in Figure \ref{fig:messages}. 
+
+Alice wants to send the message ``Hello, Bob!" to Bob. 
+Their shared key is converted from an integer to bytes, and used as an AES key to encrypt the message. 
+The message is also hashed and then truncated to give the integer $e =$ \\
+{\footnotesize $0x144b549f0522c7f6c224fe404e8200cfbe352c16883f16777d01ba8c81bce487$}. \\
+Alice generates a random number $k$ and calculates $r = kG =$ 
+\begin{equation}
+    0xa96542405f3dc83b44e45beaa40d911efe8c5fee82a9f087cce28882b0fca82.
+\end{equation}
+Next, she calculates $s = k^{-1}(e + d \cdot r) =$ \\
+{\footnotesize $0x237543088442522d4dfb6acb7126982df6d73473d1d89fe0d26f24226d79e82$}, where $d$ is her private key. \\
+The signature that Alice sends, alongside the encrypted message, is the pair $(r,s)$. 
+
+\subsubsection{Signature Verification}
+When Bob receives the encrypted message and the signature pair $(r,s)$, 
+he first uses the shared key (converted to bytes) to decrypt the message with AES. 
+He then hashes the plaintext and truncates it to get the integer $e =$ \\
+{\footnotesize$0x144b549f0522c7f6c224fe404e8200cfbe352c16883f16777d01ba8c81bce487$}. \\
+Note that this is the same hash generated by Alice, but Bob doesn't yet know this since the hash itself is not sent. 
+Alice calculates the x-coordinate of the point $v = (e \cdot s^{-1})G + (r \cdot s^{-1})Q =$ \\
+\begin{equation}
+    0xa96542405f3dc83b44e45beaa40d911efe8c5fee82a9f087cce28882b0fca82,
+\end{equation}
+where $Q$ is Alice's public key. 
+
+Since this $v$ matches the $r$ in Alice's signature ($v=r$), 
+Bob is assured that Alice sent the message, and that the content of the message is unchanged, 
+since both Alice's private key, and the same hash must have been used to generate the signature. 
+
+
+CONSTRUCTION ZONE:
 \subsubsection{Safe Curves} \label{Safe Curves}
 There are several different standards covering selection of curves for use in elliptic-curve cryptography, 
 most recently NSA Suite B (2005) and ANSSI FRP256V1 (2011). 
@@ -348,7 +422,7 @@ Curve25519 is regarded as a safe curve, since it satisfies the basic parameter r
 and the ECC security requirements beyond ECDLP security \cite{bernstein2013safecurves}.
 
 \subsubsection{Exhaustive Search} \label{Exhaustive Search}
-The elliptic curve parameters for cryptograhic schemes should be carefully chosen in order to resist all known attacks on the ECDLP. 
+The elliptic curve parameters for cryptographic schemes should be carefully chosen in order to resist all known attacks on the ECDLP. 
 The most na\"{\i}ve algorithm for solving the ECDLP is exhaustive search whereby one computes the sequence of points $P,2P,3P,4P,...$ until $Q$ is encountered. 
 The running time is approximately $n$ steps in the worst case and $n/2$ steps on average. 
 Therefore, exhaustive search can be circumvented by selecting elliptic curve parameters with $n$ sufficiently large to represent an infeasible amount of computation (e.g., $n \geq 2^{80}$) \cite{hankerson2003guide}.
@@ -362,36 +436,9 @@ If, in addition, the elliptic curve parameters are carefully chosen to defeat al
 then the ECDLP is believed to be infeasible given the state of today's computer technology \cite{hankerson2003guide}.
 
 \subsection{Testing} \label{Testing}
-Graphs from testing of security and efficiency of system: number of 1 bits vs time, log key value vs time, various curves vs time.
+Example of a working interaction
 
-I analysed the time taken to compute $kG$ here and Figure \ref{fig:curves} shows the results
-\begin{figure}[htb]
-    \centering
-    \includegraphics[width=0.5\textwidth]{figures/Timing.png}
-    \caption{Comparison of various safe curves}
-    \label{fig:curves}
-\end{figure}
-
-I also looked at whether my implementation leaks any information through timing attacks, 
-for example, is it possible to determine how many 1s are in the binary expansion of the key by analysing the time taken to compute 
-results in Figure \ref{fig:number1s}. 
-\begin{figure}[htb]
-    \centering
-    \includegraphics[width=0.5\textwidth]{figures/ones300SmoothedAny.png}
-    \caption{Analysis of information leaked through timing attacks}
-    \label{fig:number1s}
-\end{figure}
-
-I then investigated timing attacks with regards to the size of the binary expansion of the key in Figure \ref{fig:logbase2}
-\begin{figure}[htb]
-    \centering
-    \includegraphics[width=0.5\textwidth]{figures/keyValue300SmoothedAny.png}
-    \caption{Timing attacks analysis}
-    \label{fig:logbase2}
-\end{figure}
-
-
-\section{Results}
+\section{Results} \label{Results}
 This section presents the results of the solutions. 
 It should include information on experimental settings. 
 The results should demonstrate the claimed benefits/disadvantages of the proposed solutions.
@@ -403,6 +450,49 @@ This section should be between 2 to 3 pages in length.
 - Description of the evaluation method adopted - evaluated by trying to break the encryption and demonstrating that it would take an infeasible amount of time
 
 - Clarity of results
+
+
+Graphs from testing of security and efficiency of system: number of 1 bits vs time, log key value vs time, various curves vs time.
+
+I analysed the time taken to compute $kG$ here and Figure \ref{fig:curves} shows the results. 
+Add comparison with RSA timing, to make the comparison and have that data point for recommended size for security, 
+draw vertical line saying this is the recommended size for good security for elliptic curves and it's taking 0.1 seconds, 
+then have similar one for RSA at 2048 bits and hopefully it's longer
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.4\textwidth]{figures/RSA.png}
+    \caption{Comparison of RSA v ECC}
+    \label{fig:rsa}
+\end{figure}
+
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.4\textwidth]{figures/Timing.png}
+    \caption{Comparison of various safe curves}
+    \label{fig:curves}
+\end{figure}
+
+I also looked at whether my implementation leaks any information through timing attacks, 
+for example, is it possible to determine how many 1s are in the binary expansion of the key by analysing the time taken to compute 
+results in Figure \ref{fig:number1s}. 
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.4\textwidth]{figures/ones300SmoothedAny.png}
+    \caption{Analysis of information leaked through timing attacks}
+    \label{fig:number1s}
+\end{figure}
+
+I then investigated timing attacks with regards to the size of the binary expansion of the key in Figure \ref{fig:logbase2}
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.4\textwidth]{figures/keyValue300SmoothedAny.png}
+    \caption{Timing attacks analysis}
+    \label{fig:logbase2}
+\end{figure}
+
 
 
 \section{Evaluation}
