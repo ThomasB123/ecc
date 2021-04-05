@@ -9,7 +9,7 @@
 \bibliographystyle{agsm}
 
 \title{Implementation and Analysis of an Elliptic Curve Cryptography System}
-\author{} % leave; your name goes into \student{}
+%\author{} % leave; your name goes into \student{}
 \student{T. Butterfield}
 \supervisor{M. Bordewich}
 \degree{BSc Computer Science}
@@ -50,7 +50,7 @@ Safe Curves, User Interface (UI)
 \end{keywords}
 
 
-\section{Introduction}
+\section{Introduction}\noindent
 There were a total of nine objectives for this project, split equally into three sections: basic, intermediate, and advanced. 
 
 The first basic objective was to create a basic working ECC system which computed the essential functions required. 
@@ -67,11 +67,11 @@ making any necessary changes to the system to improve the efficiency.
 The final objective was to analyse the code for vulnerabilities, such as side-channel attacks, and to fix any such weaknesses. 
 
 
-\section{Related Work}
+\section{Related Work}\noindent
 Cryptography is the study of mathematical systems for solving two kinds of security problems: privacy and authentication \cite{1055638}. 
 A privacy system prevents the extraction of information by unauthorised parties from messages transmitted over a public channel, assuring it is read only by the intended recipient. 
 An authentication system prevents the unauthorised injection of messages into a public channel, assuring the legitimacy of the sender. 
-\cite{1055638} proposed that it was possible to develop systems in which two parties communicating solely over a public channel and using only publicly known techniques could create a secure connection. 
+Diffie \& Hellman \citeyear{1055638} proposed that it was possible to develop systems in which two parties communicating solely over a public channel and using only publicly known techniques could create a secure connection. 
 This was the first public discovery of public-key cryptography.
 
 Diffie and Hellman presented the concept of a public-key cryptosystem but not any practical implementation of such a system. 
@@ -79,7 +79,7 @@ So in 1978, Rivest, Shamir, and Adleman presented a new encryption method which 
 This method had the novel property that publicly revealing an encryption key did not thereby reveal the corresponding decryption key \cite{10.1145/359340.359342}. 
 This is known as RSA public-key cryptography. 
 
-\cite{10.1007/3-540-39799-X_31} and \cite{koblitz1987elliptic} discussed an analogue of the Diffie-Hellman key exchange protocol based on elliptic curves over finite fields which used the multiplicative group of a finite field. 
+Miller \citeyear{10.1007/3-540-39799-X_31} and Koblitz \citeyear{koblitz1987elliptic} discussed an analogue of the Diffie-Hellman key exchange protocol based on elliptic curves over finite fields which used the multiplicative group of a finite field. 
 The advantage of this system was that it appeared to be immune from attacks of the style of \cite{10.1007/3-540-39799-X_31,4568001}. 
 This was the invention of Elliptic Curve Cryptography. 
 
@@ -92,7 +92,7 @@ However, Sony wrote their own software which used a constant number for each sig
 This allowed the computation of their private key, from the public key, using simple algebra \cite{hotz2010console}.
 
 
-\section{Solution}
+\section{Solution}\noindent
 This section presents the solutions to the problems in detail. 
 Included here are details of the specification and design (Section \ref{Specification}), 
 an outline of the implementation issues faced (Section \ref{Implementation}), 
@@ -100,13 +100,13 @@ a description of the tools used (Section \ref{Tools}),
 as well as the verification and validation of the components (Section \ref{Verification}), 
 and finally a discussion of the testing of the system (Section \ref{Testing}). 
 
-\subsection{Architecture and Design} \label{Specification}
+\subsection{Architecture and Design}\noindent \label{Specification}
 At a high level, my system is a client-server network designed to allow 
 multiple instances of a client program to connect to a single server program. 
 The clients can communicate with each other, via the server, using end-to-end ECC encryption. 
 In the description and explanation of my system I will personalise the participants; 
 Alice and Bob want to communicate while Eve, the eavesdropper, intercepts and tries to read their messages. 
-The diagram below illustrates the protocol for Alice to send a message to Bob: 
+Figure \ref{fig:messages} illustrates the protocol for Alice to send a message to Bob: 
 
 \begin{figure}[htb]
     \centering
@@ -127,7 +127,7 @@ it only receives, stores, and sends client data.
 There are two ECC specific algorithms performed by each client in the exchange shown in Figure \ref{fig:messages}, 
 namely the Elliptic Curve Diffie-Hellman (ECDH) key exchange algorithm and the Elliptic Curve Digital Signature Algorithm (ECDSA). 
 
-\subsection{Algorithms} \label{Algorithms}
+\subsection{Algorithms}\noindent \label{Algorithms}
 This section outlines the algorithms which are used by my system and how I implemented them. 
 The two ECC specific algorithms mentioned previously (ECDH and ECDSA) differ from their RSA counterparts (DH and DSA) only in that 
 the operation of exponentiation of an integer is instead replaced by the operation of multiplying a point on an elliptic curve. 
@@ -137,29 +137,32 @@ used by RSA to calculate large exponents efficiently.
 This adapted method I implement is to use doubling and adding of points on an elliptic curve in order to achieve multiplication of a point. 
 While the naive approach would take $O(k)$ time to calculate $kG$, this approach takes $O(log(k))$ time, 
 making it practical for my system since $k$ will be a very large number (of the order $2^{250}$). 
-An elliptic curve, along with the operations of adding and doubling points on the curve, are formally defined below: 
+An elliptic curve (Section \ref{Elliptic Curve}), along with the operations of adding (Section \ref{Point Addition}) 
+and doubling (Section \ref{Point Doubling}) points on the curve, are formally defined below. 
 
-\subsubsection{Elliptic Curve} \label{Elliptic Curve}
+\subsubsection{Elliptic Curve}\noindent \label{Elliptic Curve}
 Let $p$ be a prime number, and let $F_p$ denote the field of integers modulo $p$. 
-An elliptic curve $E$ over $F_p$ is defined by an equation of the form
+An elliptic curve $E$ over $F_p$ is defined by an equation of the form:
 \begin{equation}
 y^2 = x^3 + ax + b,
 \end{equation}
+
 where $a,\, b \in F_p$ satisfy $4a^3 + 27b^2 \ne 0$ (mod $ p$).
 
-\subsubsection{Point Addition} \label{Point Addition}
+\subsubsection{Point Addition}\noindent \label{Point Addition}
 Let $P = (x_1,y_1) \in E(F_p)$ and $Q = (x_2,y_2) \in E(F_p)$, where $P \neq Q$. 
-Then $P + Q = (x_3,y_3)$, where
+Then $P + Q = (x_3,y_3)$, where:
 \begin{equation}
-    x_3 = \lambda^2 - x_1 - x_2, \quad y_3 = \lambda(x_1 - x_3) - y_1, \quad and \quad \lambda = \frac{y_2-y_1}{x_2-x_1}
+    x_3 = \lambda^2 - x_1 - x_2, \quad y_3 = \lambda(x_1 - x_3) - y_1, \quad and \quad \lambda = \frac{y_2-y_1}{x_2-x_1}.
 \end{equation}
 
-\subsubsection{Point Doubling} \label{Point Doubling}
+\subsubsection{Point Doubling}\noindent \label{Point Doubling}
 Let $P = (x_1,y_1) \in E(F_p)$. 
-Then $P + P = 2P = (x_3,y_3)$, where
+Then $P + P = 2P = (x_3,y_3)$, where:
 \begin{equation}
     x_3 = \lambda^2 - 2x_1, \quad y_3 = \lambda(x_1 - x_3) - y_1, \quad and \quad \lambda = \frac{3x_1^2 + a}{2y_1}
 \end{equation}
+
 \cite{hankerson2003guide,lopez2000overview}.
 
 \vspace{5mm}
@@ -182,41 +185,50 @@ are also integers.
 
 Once I had a function for efficiently computing point multiplication, I was able to move on to the functions of ECDH and ECDSA. 
 
-\subsubsection{ECDH} \label{ECDH}
+\subsubsection{ECDH}\noindent \label{ECDH}
 The \emph{Elliptic Curve Diffie-Hellman} key agreement protocol allows Alice and Bob 
 to securely agree upon the value of a point on an elliptic curve, although neither of them initially knows the value of the point. 
-This point becomes their shared key, and the algorithm for generating it is formally defined below: 
+This point becomes their shared key, and the algorithm for generating it is formally defined below. 
 
+
+\subsubsection{Shared Key Establishment}\noindent
 Alice and Bob must agree on a finite field $F_q$, an elliptic curve $E/F_q$, and a generator point $G \in E(F_q)$  of (prime) order $n$.
 Both Alice and Bob have a key pair $(d,Q)$ consisting of a private key $d$ (a randomly selected integer less than $n$) 
 and a public key $Q = d * G$.
 
-Let $(d_A,Q_A)$ be the key pair of Alice and $(d_B,Q_B)$ be the key pair of Bob.
+\vspace{1mm}
 
-1. Alice computes $K = (x_K,y_K) = d_A * Q_B$
+0. \space Let $(d_A,Q_A)$ be the key pair of Alice and $(d_B,Q_B)$ be the key pair of Bob.
 
-2. Bob computes $L = (x_L,y_L) = d_B * Q_A$
+1. \space Alice computes $K = (x_K,y_K) = d_A * Q_B$
 
-3. Since $d_AQ_B = d_Ad_BG = d_Bd_AG = d_BQ_A$. Therefore $K = L$ and hence $x_K = x_L$
+2. \space Bob computes $L = (x_L,y_L) = d_B * Q_A$
 
-4. Hence the shared secret is $x_K$
+3. \space Since $d_AQ_B = d_Ad_BG = d_Bd_AG = d_BQ_A$. Therefore $K = L$ and hence $x_K = x_L$
+
+4. \space Hence the shared secret is $x_K$
+
+\vspace{1mm}
 
 Since it is practically impossible to find the private key $d_A$ or $d_B$ from the public key $K$ or $L$, 
 it is not possible for Eve to obtain the shared secret \cite{jurivsic1997elliptic,anoop2007elliptic,silverman2009arithmetic,brown2009standards}. 
 
-In my implementation of this algorithm, all clients are automatically using the same generator point which lies 
-on the same elliptic curve, defined over the same finite field, 
-since every client is an instance of the same program and this is hard-coded. 
-I generate the random private key for each client, using Python's "secrets" module, right when the client instance is started, 
-and the public key is then calculated immediately after using the point multiplication function mentioned previously. 
-This public key is then sent to the server along with the user's name (e.g. Alice) which they have entered via the command line, 
-such that any other user (e.g. Bob) can then get Alice's public key from the server and establish a secret shared key with her. 
-In my system, Bob (or any other client) calculates their shared key with Alice by asking the server for any available public keys, 
-and using the point multiplication function to multiply Alice's public key by their private key. 
-The shared keys that each client has established with their contacts is stored locally 
-and then used to encrypt future messages with symmetric AES. 
+\vspace{5mm}
 
-\subsubsection{ECDSA} \label{ECDSA}
+In my implementation of this algorithm, all clients are automatically using the same generator point which lies 
+on the same elliptic curve, defined over the same finite field. 
+This is because every client is an instance of the same program and this is hard-coded. 
+I generate the random private key for each client, using Python's "secrets" module, when the client instance is started. 
+The public key is then calculated using the point multiplication function mentioned previously. 
+This public key is sent to the server along with the user's name (e.g. Alice) which they have entered via the command line. 
+Any other user (e.g. Bob) can then get Alice's public key from the server and establish a secret shared key with her. 
+In my system, Bob (or any other client) calculates their shared key with Alice by first asking the server 
+for any available public keys. 
+Bob then uses the point multiplication function to multiply Alice's public key by his private key. 
+The shared keys that each client has established with their contacts are stored locally 
+and used to encrypt future messages with symmetric AES. 
+
+\subsubsection{ECDSA}\noindent \label{ECDSA}
 The \emph{Elliptic Curve Digital Signature Algorithm} allows Alice to sign a message or file in such a way that Bob is able to then 
 verify that Alice must have been the sender and that the message/file has not been altered. 
 Alice does this by generating a signature using the hash of the message and her private key. 
@@ -224,33 +236,41 @@ She then sends this to Bob alongside her message.
 Bob then uses Alice's public key and the hash of the message to check that the signature must have been generated on the same message and by Alice. 
 The two parts of this algorithm are formally defined below. 
 
-\subsubsection{Signature Generation} \label{Signature Generation}
+\subsubsection{Signature Generation}\noindent \label{Signature Generation}
 For signing a message $m$ sent by Alice, using Alice's private key $d_A$.
 
-1. Calculate $e = HASH(m)$, where $HASH$ is a cryptographic hash function, such as SHA
+\vspace{1mm}
 
-2. Select a random integer $k$ from $[1,n-1]$
+1. \space Calculate $e = HASH(m)$, where $HASH$ is a cryptographic hash function, such as SHA
 
-3. Calculate $r = x1$, where $(x1,y1) = k * G$ (mod $n$)
+2. \space Select a random integer $k$ from $[1,n-1]$
 
-4. Calculate $s = k^{-1}(e+d_Ar)$ (mod $n$)
+3. \space Calculate $r = x1$, where $(x1,y1) = k * G$ (mod $n$)
 
-5. The signature is the pair $(r,s)$
+4. \space Calculate $s = k^{-1}(e+d_Ar)$ (mod $n$)
 
-\subsubsection{Signature Verification} \label{Signature Verification}
+5. \space The signature is the pair $(r,s)$
+
+\subsubsection{Signature Verification}\noindent \label{Signature Verification}
 For Bob to authenticate Alice's signature, Bob must have Alice's public key $Q_A$.
 
-1. Calculate $e = HASH(m)$
+\vspace{1mm}
 
-2. Calculate $w = s^{-1}$ (mod $n$)
+1. \space Calculate $e = HASH(m)$
 
-3. Calculate $u_1 = ew$ (mod $n$) and $u_2 = rw$ (mod $n$)
+2. \space Calculate $w = s^{-1}$ (mod $n$)
 
-4. Calculate $(x1,y1) = u_1G + u_2Q_A$
+3. \space Calculate $u_1 = ew$ (mod $n$) and $u_2 = rw$ (mod $n$)
 
-5. The signature is valid if $x1 = r$ (mod $n$), invalid otherwise
+4. \space Calculate $(x_1,y_1) = u_1G + u_2Q_A$
+
+5. \space The signature is valid if $x_1 = r$ (mod $n$), invalid otherwise
+
+\vspace{2mm}
 
 \cite{jurivsic1997elliptic,koblitz2000state,hankerson2003guide,anoop2007elliptic,silverman2009arithmetic,brown2009standards}.
+
+\vspace{5mm}
 
 In my implementation of this algorithm, Alice and Bob first agree upon all of the same initial setup things mentioned in Section \ref{ECDH} 
 by default since again they are all hard-coded in to every client. 
@@ -280,41 +300,47 @@ If these are equal (mod $n$) then the signature is valid and was definitely gene
 So now Bob has the plaintext message and is assured that it is authentic. 
 
 
-\subsection{Tools used} \label{Tools}
-The system was created entirely in Python, I chose this language because of both its ability to handle large integers with ease, 
+\subsection{Tools used}\noindent \label{Tools}
+The system was created entirely in Python. 
+I chose this language because of both its ability to handle large integers with ease, 
 and its large number of well-established modules for computing generic cryptographic functions. 
 Since my system carries out operations involving huge integers, other less abstracted languages would 
 have required much more involvement at the lower level which would only detract from my progress with the actual aims of the project. 
 The specific Python modules that I used in my system are: "Pyro4", "AES" from "Cryptodome", "base64", "hashlib", "secrets", and "os". 
 "Pyro4" is used for remote object invocation, "AES" for symmetric encryption, "base64" for decoding the AES ciphertext, 
 and "hashlib" for generating hashes using SHA-2. 
-I chose to use "secrets" because after my initial implementation using "random", I realised that this wasn't cryptographically secure. 
-I use the "os" module for file management, since any files which the user receives are stored in a subdirectory labelled by their name. 
+I chose to use "secrets" because I realised that my initial implementation using "random" was not cryptographically secure. 
+I used the "os" module for file management, since any files which the user receives are stored 
+in a subdirectory labelled by their name. 
 I only used long standing and well used libraries because of \cite{ducklin2021python}. 
 
-The system can be started and interacted with via a command line interface, this was chosen since it allowed me to focus 
-more on the protocols and back-end of the system rather than on designing a visually appealing graphical user interface, 
-which was not relevant to the mathematical-based aims of this project. 
+The system can be started and interacted with via a command line interface. 
+This was chosen since it allowed me to focus 
+more on the protocols and back-end of the system rather than on designing a visually appealing graphical user interface (GUI). 
+A GUI was not relevant to the mathematical-based aims of this project. 
 
 
-\subsection{Implementation Issues} \label{Implementation}
+\subsection{Implementation Issues}\noindent \label{Implementation}
 After I successfully implemented client-client communication with separate instances of the client program running on the 
 same machine, I then attempted to adapt the system for use with the client instances on separate machines on the same network. 
-However, I encountered issues with this due to the security protocols in place on networks and I decided against attempting to 
-circumvent these protocols due to both the potentially time-consuming nature of the problem and fact that my project is not aiming 
+However, I encountered issues with this due to the security protocols in place on networks. 
+I decided against attempting to circumvent these protocols due to both the potentially 
+time-consuming nature of the problem and fact that my project is not aiming 
 to recreate Signal or WhatsApp, network communication is not necessary. 
 
 
-\subsection{Verification and Validation} \label{Verification}
-This section will run through an example interaction between Alice and Bob using the system, 
+\subsection{Verification and Validation}\noindent \label{Verification}
+This section will run through a real interaction between Alice and Bob using the system, 
 specifically the exchange shown in Figure \ref{fig:messages}. 
 This will demonstrate the calculations performed by the system and the validity of these calculations. 
 All large numbers here are shown in hexadecimal, for brevity. 
 This interaction uses an elliptic curve known as Curve25519 \cite{10.1007/11745853_14}, 
 which can be expressed by the equation: 
+
 \begin{equation}
     y^2 = x^3 + 486662x^2 + x \pmod{2^{255}-19}.
 \end{equation}
+
 This curve is most often expressed in the Montgomery \cite{montgomery1987speeding} form as above ($By^2 = x^3 + Ax^2 + x$), 
 but can be converted to the more traditional short Weierstrass form shown earlier ($y^2 = x^3 + ax + b$) through substitution. 
 Curve25519 has the base point $g = $ \\
@@ -322,31 +348,33 @@ Curve25519 has the base point $g = $ \\
 which has prime order $n = 2^{252} +$ {\footnotesize $0x14def9dea2f79cd65812631a5cf5d3ed$}. 
 The curve's cofactor is $h = 8$. 
 
-\subsubsection{Key Generation}
-Alice's randomly generated private key is: \\
-{\footnotesize $0x69837a193b0f43bac8b32a30396a189c51706d49fcbb7c0e099b8f1b4bcb969$}, \\
-so when she multiplies the base point $g$ by this number, she obtains the point \\
+
+\subsubsection{Key Generation}\noindent
+Alice's randomly generated private key is \\
+{\footnotesize $0x69837a193b0f43bac8b32a30396a189c51706d49fcbb7c0e099b8f1b4bcb969$}. \\
+When she multiplies the base point $g$ by this number, she obtains the point \\
 ({\footnotesize $0x67bf8995372ae1a9329f441d955193623aedf68a01ee5e2af7c33eabc27d9fd$}, \\
 {\footnotesize $0xbc9a2fe41909056a46927d7c3af1ffed8e802854a32378df1845f819c016bdb$}) \\
 as her public key.
 
 Generated in the same way, Bob's private key is \\
-{\footnotesize $0xf7d16d30314975879241ab2a17fdb1194fa2a7319b0b3331590c8482437f0b3$}, \\
-and his public key is \\
+{\footnotesize $0xf7d16d30314975879241ab2a17fdb1194fa2a7319b0b3331590c8482437f0b3$}. \\
+Therefore his public key is \\
 ({\footnotesize $0x2ffeaa851900d44817e3888854d958a91b9e1127ed0057a2e6796f3a1115cda$}, \\
 {\footnotesize $0x3fd4639dbd63076c19aeb51816711d7de4331cb75ec3c89ea1c387297660809c$}).
 
-\subsubsection{Shared Key Establishment}
+
+\subsubsection{Shared Key Establishment}\noindent
 Alice calculates the shared key by $h \cdot d \cdot Q$, 
 where $h$ is the cofactor, $d$ is Alice's private key, and $Q$ is Bob's public key. \\
 Firstly, $d \cdot Q = $\\
 ({\footnotesize $0x7bb294204beba6ba902f5a21e14c4d5abc953d52b79be70377104f72de310a4a$}, \\
 {\footnotesize $0x6d9d2ec13fc729a629259a1fcdf96d4a66e7e4e1365f54ed5fa56e235bc74b5$}) \\
-Then multiplying by $h = 8$ gives \\
+Then multiplying by $h = 8$ gives $h \cdot d \cdot Q = $\\
 ({\footnotesize $0x37ae8d3aa1495b39ead29b8abe24e7d8d7f2fb05186216a37c4b55708ead1fd$}, \\
 {\footnotesize $0x29aecf95ba814e3e52866f5daa243d3366e8c8d0255117ee047822319b44222c$}) \\
 Therefore, Alice calculates the shared key as: 
-\begin{equation}
+\begin{equation} \label{AliceKey}
     0x37ae8d3aa1495b39ead29b8abe24e7d8d7f2fb05186216a37c4b55708ead1fd.
 \end{equation}
 
@@ -354,21 +382,21 @@ Bob also calculates $h \cdot d \cdot Q$, except here $d$ is his private key and 
 $d \cdot Q = $ \\
 ({\footnotesize $0x7bb294204beba6ba902f5a21e14c4d5abc953d52b79be70377104f72de310a4a$}, \\
 {\footnotesize $0x6d9d2ec13fc729a629259a1fcdf96d4a66e7e4e1365f54ed5fa56e235bc74b5$}) \\
-Then multiplying by $h = 8$ gives \\
+Then multiplying by $h = 8$ gives $h \cdot d \cdot Q = $\\
 ({\footnotesize $0x37ae8d3aa1495b39ead29b8abe24e7d8d7f2fb05186216a37c4b55708ead1fd$}, \\
 {\footnotesize $0x29aecf95ba814e3e52866f5daa243d3366e8c8d0255117ee047822319b44222c$}) \\
 Bob's calculation of the shared key is: 
-\begin{equation}
+\begin{equation} \label{BobKey}
     0x37ae8d3aa1495b39ead29b8abe24e7d8d7f2fb05186216a37c4b55708ead1fd.
 \end{equation}
 
-This demonstrates that the ECDH part of the system works, since Alice and Bob each calculate the same shared key. 
+This demonstrates that the ECDH part of the system works, since Alice and Bob each calculate the same shared key ( Key (\ref{AliceKey}) = Key (\ref{BobKey}) ). 
 Critically, from a security perspective, only Alice and Bob can possibly know the value of this shared secret key 
 because it was calculated using their respective private keys (which only they have access to). 
 This makes it suitable for use as a symmetric AES key for end-to-end-encrypted communication between Alice and Bob. 
 
 
-\subsubsection{Signature Generation}
+\subsubsection{Signature Generation}\noindent
 The system allows Alice to send a message or file to Bob which is not only encrypted using the shared key that they have just established (through ECDH), 
 but which is also digitally signed in such a way that Bob can verify the authenticity of the message. 
 This subsection shows an example message sent by Alice to Bob, as in Figure \ref{fig:messages}. 
@@ -385,7 +413,7 @@ Next, she calculates $s = k^{-1}(e + d \cdot r) =$ \\
 {\footnotesize $0x237543088442522d4dfb6acb7126982df6d73473d1d89fe0d26f24226d79e82$}, where $d$ is her private key. \\
 The signature that Alice sends, alongside the encrypted message, is the pair $(r,s)$. 
 
-\subsubsection{Signature Verification}
+\subsubsection{Signature Verification}\noindent
 When Bob receives the encrypted message and the signature pair $(r,s)$, 
 he first uses the shared key (converted to bytes) to decrypt the message with AES. 
 He then hashes the plaintext and truncates it to get the integer $e =$ \\
@@ -402,8 +430,9 @@ Bob is assured that Alice sent the message, and that the content of the message 
 since both Alice's private key, and the same hash must have been used to generate the signature. 
 
 
-CONSTRUCTION ZONE:
-\subsubsection{Safe Curves} \label{Safe Curves}
+
+
+\subsubsection{Safe Curves}\noindent \label{Safe Curves}
 There are several different standards covering selection of curves for use in elliptic-curve cryptography, 
 most recently NSA Suite B (2005) and ANSSI FRP256V1 (2011). 
 Each of these standards tries to ensure that the ECDLP (finding a user's private key, given their public key) is difficult. 
@@ -421,13 +450,13 @@ where $p$ is the prime number $2^{255} - 19$ and $E$ is the elliptic curve $y^2 
 Curve25519 is regarded as a safe curve, since it satisfies the basic parameter requirements, the ECDLP security requirements, 
 and the ECC security requirements beyond ECDLP security \cite{bernstein2013safecurves}.
 
-\subsubsection{Exhaustive Search} \label{Exhaustive Search}
+\subsubsection{Exhaustive Search}\noindent \label{Exhaustive Search}
 The elliptic curve parameters for cryptographic schemes should be carefully chosen in order to resist all known attacks on the ECDLP. 
 The most na\"{\i}ve algorithm for solving the ECDLP is exhaustive search whereby one computes the sequence of points $P,2P,3P,4P,...$ until $Q$ is encountered. 
 The running time is approximately $n$ steps in the worst case and $n/2$ steps on average. 
 Therefore, exhaustive search can be circumvented by selecting elliptic curve parameters with $n$ sufficiently large to represent an infeasible amount of computation (e.g., $n \geq 2^{80}$) \cite{hankerson2003guide}.
 
-\subsubsection{Pohlig-Hellman and Pollard's rho algorithm} \label{Pohlig-Hellman and Pollard's rho algorithm}
+\subsubsection{Pohlig-Hellman and Pollard's rho algorithm}\noindent \label{Pohlig-Hellman and Pollard's rho algorithm}
 The best general-purpose attack known on the ECDLP is the combination of the Pohlig-Hellman algorithm and Pollard's rho algorithm, 
 which has a fully-exponential running time of $O( \sqrt p \,)$ where $p$ is the largest prime divisor of $n$. 
 To resist this attack, the elliptic curve parameters should be chosen so that $n$ is divisible by a prime number $p$ sufficiently large 
@@ -435,10 +464,11 @@ so that $\sqrt p$ steps is an infeasible amount of computation (e.g., $p > 2^{16
 If, in addition, the elliptic curve parameters are carefully chosen to defeat all other known attacks (e.g. Isomorphism attacks), 
 then the ECDLP is believed to be infeasible given the state of today's computer technology \cite{hankerson2003guide}.
 
-\subsection{Testing} \label{Testing}
+\subsection{Testing}\noindent \label{Testing}
 Example of a working interaction
 
-\section{Results} \label{Results}
+
+\section{Results}\noindent \label{Results}
 This section presents the results of the solutions. 
 It should include information on experimental settings. 
 The results should demonstrate the claimed benefits/disadvantages of the proposed solutions.
@@ -495,7 +525,7 @@ I then investigated timing attacks with regards to the size of the binary expans
 
 
 
-\section{Evaluation}
+\section{Evaluation}\noindent
 This section should between 1 to 2 pages in length.
 
 - 20\% of paper
@@ -509,7 +539,7 @@ This section should between 1 to 2 pages in length.
 - Appraisal of project organisation
 
 
-\section{Conclusions}
+\section{Conclusions}\noindent
 This section summarises the main points of this paper. 
 Do not replicate the abstract as the conclusion. 
 A conclusion might elaborate on the importance of the work or suggest applications and extensions. 
