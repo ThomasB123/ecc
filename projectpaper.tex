@@ -721,24 +721,6 @@ In these results that difference is 4.9 seconds for RSA against 0.11 seconds for
 In general this is the nature of comparing a $O(n^2)$ system with a $O(n)$ system. 
 ECC is faster than RSA today, and will get even faster (relatively) in the future. 
 
-% RSA = [0.8297,4.9126,96.7222,1024.2669]
-% times511 = [0.0960,0.1100,0.1645,0.2221]
-
-%also mention smaller key size means less data transfer and less computation for mobile devices
-
-%When comparing the security strength of RSA with ECC it is important to bear in mind that for keys of the same length 
-%RSA is faster than ECC, since the operation of multiplying integers is easier than adding points on an elliptic curve. 
-
-%112 bit security strength, 2048 bits of RSA is equivalent to 224 bits of ECC
-%128 bit security strength, 3072 bits of RSA is 256 bit ECC, this will be minimum requirement after 2023
-%192, 7680, 384
-%256, 15360, 512
-
-%The measurement used to relate encryption algorithms to each other is the estimated maximum-security strength (in bits) 
-%provided by the algorithm for a particular key length. 
-%For example, according to NIST, to achieve a security strength of 112 bits, RSA requires a 2048 bit key, whereas ECC requires a 224 bit key. 
-%this measurement takes into account attacks on the algorithms that provide computational advantages. 
-
 \begin{figure}[!htb]
     \begin{minipage}{0.5\textwidth}
         \centering
@@ -753,8 +735,6 @@ ECC is faster than RSA today, and will get even faster (relatively) in the futur
         \label{fig:curves}
     \end{minipage}
 \end{figure}
-
-\vspace{5mm}
 
 After demonstrating the benefits of ECC over RSA, the focus then shifts to the benefits of some ECC curves over others. 
 Figure \ref{fig:curves} shows how the time taken to generate a key pair varies as the size of the private key increases, for 4 different curves. 
@@ -815,8 +795,6 @@ and the size of the key, measured by taking the log of the key (Figure \ref{fig:
     \end{minipage}
 \end{figure}
 
-\vspace{3mm}
-
 Figure \ref{fig:number1s} appears to show a positive correlation between the number of $1$s in the binary expansion of the private key and the time taken to generate the key pair. 
 However, Figure \ref{fig:logkey} appears to show no strong correlation between the value of the private key and the time taken to generate the key pair. 
 
@@ -856,7 +834,7 @@ Additional capability of the system to carry out the ECDSA on both text messages
 as well as improvements to the security of the key generation process means that the intermediate objectives are also fulfilled. 
 Finally, improvements in the user interface in addition to analysis of the system in terms of both security and efficiency ensures that the advanced objectives are met. 
 
-Overall then, the objectives were mostly fulfilled, with the exception of the communication over a network issue mentioned earlier (Section III.\ref{Implementation}). 
+Overall the objectives were mostly fulfilled, with the exception of the communication over a network issue mentioned earlier (Section III.\ref{Implementation}). 
 
 
 \subsection{Strengths and Limitations} \noindent \label{Strengths}
