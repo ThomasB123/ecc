@@ -33,7 +33,7 @@
     
     \vspace{-5mm}
     \paragraph{Aims} -
-    The aim of this project was to create a working Elliptic Curve Cryptography system which facilitated secure communication over an open channel, 
+    This project aimed to create a working Elliptic Curve Cryptography system that facilitated secure communication over an open channel, 
     and to analyse this system in terms of security and efficiency. 
 
     \vspace{-5mm}
@@ -44,13 +44,13 @@
 
     \vspace{-5mm}
     \paragraph{Results} -
-    An end-to-end encrypted messaging system allowing for both text and file sending was created, using ECC for key establishment and for digital signature authentication. 
-    Analysis shows that very little data is leaked through timing attacks, and that my ECC system is almost an order of magnitude more efficient than an RSA system at today's minimum security level, with this gap widening exponentially as security level increases. 
+    An end-to-end encrypted messaging system allowing for both text and file sending was created, using ECC for key establishment and digital signature authentication. 
+    Analysis shows that very little data is leaked through timing attacks and that my ECC system is almost an order of magnitude more efficient than an RSA system at today's minimum security level, with this gap widening exponentially as security level increases. 
 
     \vspace{-5mm}
     \paragraph{Conclusions} -
     The system allows for secure and efficient communication due to smaller key sizes, making it well suited for use in mobile and low power devices such as those in the Internet of Things network. 
-    Cryptography systems which use ECC rather than RSA can generate results much faster with less computation, and this disparity will grow over time. 
+    Cryptography systems that use ECC rather than RSA can generate results much faster with less computation, and this disparity will grow over time. 
 
 \end{abstract}
 
@@ -73,7 +73,7 @@ Authentication is solved with the Elliptic Curve Digital Signature Algorithm (EC
 which allows Bob to verify that Alice was truly the sender of a message, and ensures that Eve cannot impersonate Alice. 
 
 These two algorithms are very similar to their RSA counterparts. 
-While RSA squares and multiplies numbers repeatedly in order to achieve exponentiation, 
+While RSA squares and multiplies numbers repeatedly to achieve exponentiation, 
 ECC doubles and adds points on a curve repeatedly to achieve multiplication. 
 
 As with any public-key cryptosystem, each user has both a public key and a private key. 
@@ -84,18 +84,18 @@ In ECC this is known as the elliptic curve discrete logarithm problem (ECDLP).
 Although ECC is perhaps not as well-known as RSA, it is much more efficient. 
 The problem with RSA is that for it to be considered secure by modern standards, the keys used must be at least 2048 bits in size. 
 This makes computation slow and battery draining for mobile devices. 
-However, an equivalent level of security can be achieved using ECC with a key which is only 224 bits in size, 
+However, an equivalent level of security can be achieved using ECC with a key that is only 224 bits in size, 
 which means less computation, less data to be transferred, and greater efficiency for mobile devices. 
 This is because the integer factorisation problem, on which the security of RSA is based, can be solved in sub-exponential running time, 
 whereas the ECDLP, on which the security of ECC is based, can only be solved in fully exponential running time. 
-Meaning that, in order to increase security levels, RSA key sizes must increase exponentially while ECC key sizes can increase linearly. 
+Meaning that, to increase security levels, RSA key sizes must increase exponentially while ECC key sizes can increase linearly. 
 
 ECC is a very efficient method for modern public-key cryptography, 
-but there are many different elliptic curves which can be used in an ECC system and they each vary in both speed and strength. 
+but many different elliptic curves can be used in an ECC system and they each vary in both speed and strength. 
 
 
 \subsection{Objectives} \noindent \label{Objectives}
-The aim of this project was to implement an Elliptic Curve Cryptography system, 
+This project aimed to implement an Elliptic Curve Cryptography system, 
 and to then analyse this system. 
 This system allows for secure communication over a public channel between users. 
 The analysis then compares both the efficiency and security aspects of the system. 
@@ -104,7 +104,7 @@ as well as looking at the differences between a selection of elliptic curves.
 As such, the project had no specific research question. 
 
 There were a total of nine objectives for this project, split equally into three sections: basic, intermediate, and advanced. 
-The first basic objective was to create a basic working ECC system which computed the essential functions required. 
+The first basic objective was to create a basic working ECC system that computed the essential functions required. 
 The second and third basic objectives were to create a client application that can conduct ECDH over a network connection, 
 and to create a user interface (UI) allowing a user to easily make use of the system and to decide what level of complexity is revealed to them. 
 
@@ -115,11 +115,11 @@ The other intermediate objectives were to implement the ECDSA and to enable the 
 The first advanced objective was to make improvements to the UI and to reveal the workings of the system. 
 The penultimate objective was to analyse the code for efficiency, 
 including how the time required scales with the curve and key size, 
-making any necessary changes to the system to improve the efficiency. 
+making any necessary changes to the system to improve efficiency. 
 The final objective was to analyse the code for vulnerabilities, such as side-channel attacks, 
 and to fix any such weaknesses. 
 
-A basic working ECC system with a command line user interface was created early on in the project, 
+A basic working ECC system with a command-line user interface was created early on in the project, 
 in line with the basic objectives, 
 which allowed client applications on the same machine to perform ECDH key exchange. 
 The basic objectives were fulfilled ahead of schedule, 
@@ -139,14 +139,14 @@ Due to the complexity of elliptic curve cryptography, the creation of the system
 Diffie and Hellman \citeyear{1055638} defined cryptography as the study of 
 mathematical systems for solving two kinds of security problems: privacy and authentication. 
 A privacy system prevents the extraction of information by unauthorised parties from messages transmitted over a public channel, 
-assuring it is read only by the intended recipient. 
+assuring it is read by only the intended recipient. 
 An authentication system prevents the unauthorised injection of messages into a public channel, assuring the legitimacy of the sender. 
 They also proposed that it was possible to develop systems in which two parties 
 communicating solely over a public channel and using only publicly known techniques could create a secure connection. 
 This was the first (public) discovery of public-key cryptography. 
 
 While Diffie and Hellman presented the concept of a public-key cryptosystem, they did not present any practical implementation of such a system. 
-Rivest, Shamir, and Adleman \citeyear{10.1145/359340.359342} presented a new encryption method which did just that, 
+Rivest, Shamir, and Adleman \citeyear{10.1145/359340.359342} presented a new encryption method that did just that, 
 it was the first (public) implementation of public-key cryptography. 
 This method had the novel property that publicly revealing an encryption key did not thereby reveal the corresponding decryption key. 
 This is now known as RSA public-key cryptography, 
@@ -184,14 +184,14 @@ The point $D$ is the sum of points $A$ and $B$ in Figure \ref{fig:addition}, so 
 \end{figure}
 
 The same principle applies for doubling a point, as Figure \ref{fig:doubling} illustrates. 
-If instead $A = B = X$, then the line passing through both points is instead a tangent to the curve at $X$. 
-The only other point at which the line intersects the curve in then $Y$ in Figure \ref{fig:doubling}. 
+If $A = B = X$ instead, then the line passing through both points is instead a tangent to the curve at $X$. 
+The only other point at which the line intersects the curve is then $Y$ in Figure \ref{fig:doubling}. 
 When reflected in the x-axis this becomes $Z$. 
 The point $Z$ is the double of point $X$ in Figure \ref{fig:doubling}, so $2 \cdot X = Z$. 
 This allows any point on the curve to be multiplied by an integer, using repeated doubling and adding. 
 
 The major difference between RSA and ECC, as previously mentioned, 
-is that while RSA squares and multiplies numbers repeatedly in order to achieve exponentiation, 
+is that while RSA squares and multiplies numbers repeatedly to achieve exponentiation, 
 ECC doubles and adds points on a curve repeatedly to achieve multiplication. 
 
 Some of the key sources used for understanding, describing, and implementing the ECC protocols throughout this project include: 
@@ -202,12 +202,13 @@ Therefore, these sources were frequently referred to when I was implementing the
 
 
 \subsection{Attacks} \noindent
-There are many different elliptic curve schemes which can be used in an ECC system, 
+Many different elliptic curve schemes can be used in an ECC system, 
 and the definition of a particular scheme includes the equation of the curve itself, 
-as well as a point which lies on the curve, known as the base point $G$. 
+as well as a point that lies on the curve, known as the base point $G$. 
 When using an ECC system, every user has a pair of keys $(d,Q)$ consisting of a private key $d$ and a public key $Q$. 
 A user's private key is just a randomly generated number that is kept secret and never shared with anyone. 
-The user's public key is calculated by multiplying the curve's base point $G$ by their private key $d$, so the public key is $Q = d \cdot G = dG$. 
+The user's public key is calculated by multiplying the curve's base point $G$ by their private key $d$, 
+so the public key is $Q = d \cdot G = dG$. 
 It is easy for a user to compute their public key $dG$, given their private key $d$ and the publicly known base point $G$, 
 by doubling and adding the point $G$ to itself repeatedly. 
 However, the strength of ECC comes from the fact that it is infeasible for an attacker to compute the private key $d$, even if they know the public key $dG$ and the base point $G$. 
@@ -216,7 +217,7 @@ is known as the elliptic curve discrete logarithm problem (ECDLP).
 
 The minimum recommended security strength today is 112 bits \cite{barker2020recommendation}, 
 meaning that $2^{112}$ steps of computation is regarded as infeasible. 
-The elliptic curve parameters for cryptographic schemes should be carefully chosen in order to resist all known attacks on the ECDLP which reduce its difficulty. 
+The elliptic curve parameters for cryptographic schemes should be carefully chosen to resist all known attacks on the ECDLP which reduce its difficulty. 
 Two of these attacks are described here, along with the elliptic curve parameter choices necessitated by their existence. 
 
 \subsubsection{Exhaustive Search} \noindent \label{Exhaustive Search}
@@ -247,16 +248,16 @@ However, if the core functions are incorrectly implemented then the system can b
 as was demonstrated by Hotz \citeyear{hotz2010console}. 
 
 In 2010, it was discovered that Sony had made a basic and critical mistake in the implementation of their Elliptic Curve Cryptography system. 
-In general, a digital signature in cryptography allows a user to verify that a file they downloaded was definitely created by a particular person/company. 
+In general, a digital signature in cryptography allows a user to verify that a file they downloaded was created by a particular person/company. 
 Sony's PlayStation 3 console uses digital signatures to verify that a game is authentic, 
 this prevents users from running their own programs on the console. 
 The process of digital signature generation in ECC involves picking a random integer $k$ to be used later in the next step of the process. 
 It is imperative that $k$ is truly random and not predictable in any way. 
-However, Sony wrote their own software to generate $k$, which used a constant number for each signature. 
+However, Sony wrote their own software to generate $k$, which mistakenly used a constant number for each signature. 
 This allowed hackers to compute their private key, from the public key, using simple algebra \cite{hotz2010console}. 
 Once hackers acquired Sony's private key, they could use it to generate their own digital signatures which impersonated Sony. 
 This meant they could run their own programs on the console since the files appeared to be authentic. 
-One of the lessons learnt here, in terms of my own implementation, 
+One of the lessons learnt here, in terms of my implementation, 
 is that a secure ECC system requires a good random number generator. 
 More generally though, this shows that mathematically secure does not always translate to a secure implementation, 
 another point to bear in mind when I implement my ECC system. 
@@ -268,7 +269,7 @@ This section presents in detail my solution to meeting the objectives of the pro
 Included here are details of the architecture and design of the system (Section \ref{Architecture}), 
 the algorithms (Section \ref{Algorithms}) and tools used (Section \ref{Tools}), 
 as well as an outline of the implementation issues faced (Section \ref{Implementation}), 
-and finally a demonstration to verify and validate the system (Section \ref{Verification}). 
+and finally, a demonstration to verify and validate the system (Section \ref{Verification}). 
 
 \subsection{Architecture and Design} \noindent \label{Architecture}
 At a high level, my system is a client-server network designed to allow 
@@ -286,14 +287,14 @@ Figure \ref{fig:messages} illustrates the protocol for Alice to send a message t
 \end{figure}
 
 A message here can be either a text message or a file from Alice's device. 
-The server stores a list of the public keys of every client who is connected, 
-and will send this to any client who requests it in order for them to establish a shared key with other clients. 
+The server stores a list of the public keys of every client who is connected 
+and will send this to any client who requests it so they can establish a shared key with other clients. 
 The server also holds the encrypted data and the accompanying signature for messages which have yet to be requested by the recipient. 
-After the recipient has asked the server if there are any messages waiting for them, the server has sent the relevant message(s), 
+After the recipient has asked the server if any messages are waiting for them, the server has sent the relevant message(s), 
 and the recipient has decrypted and verified the message(s), the server then deletes the message(s). 
 The only data stored by the client is a list of their shared keys with other clients. 
-As shown in Figure \ref{fig:messages}, all of the computation is done by the client and the server does not perform any calculations; 
-it only receives, stores, and sends client data. 
+As shown in Figure \ref{fig:messages}, all of the computation is done by the client. 
+The server does not perform any calculations; it just receives, stores, and sends client data. 
 There are two ECC specific algorithms performed by each client in the exchange shown in Figure \ref{fig:messages}, 
 namely the Elliptic Curve Diffie-Hellman (ECDH) key exchange algorithm and the Elliptic Curve Digital Signature Algorithm (ECDSA). 
 
@@ -301,10 +302,10 @@ namely the Elliptic Curve Diffie-Hellman (ECDH) key exchange algorithm and the E
 This section outlines the algorithms which are used by my system and how I implemented them. 
 The two ECC specific algorithms mentioned previously (ECDH and ECDSA) differ from their RSA counterparts (DH and DSA) only in that 
 the operation of exponentiation of an integer is instead replaced by the operation of multiplying a point on an elliptic curve. 
-The naive approach to this of repeatedly adding a point $G$ to itself $d$ times in order to calculate $dG$ would take prohibitively long. 
+The naive approach to this of repeatedly adding a point $G$ to itself $d$ times to calculate $dG$ would take prohibitively long. 
 Therefore I implemented an adapted version of the repeated squares method (squaring and multiplying integers) 
-used by RSA in order to calculate large exponents efficiently. 
-The method I implemented uses doubling and adding of points on an elliptic curve in order to achieve multiplication of a point. 
+used by RSA to calculate large exponents efficiently. 
+The method I implemented uses the doubling and adding of points on an elliptic curve to achieve multiplication of a point. 
 While the naive approach would take $O(d)$ time to calculate $dG$, this approach takes $O(log(d))$ time, 
 making it practical for my system since $d$ will be a very large number (of the order $2^{250}$). 
 An elliptic curve (Section \ref{Elliptic Curve}), along with the operations of adding (Section \ref{Point Addition}) 
@@ -340,14 +341,14 @@ Then $P + P = 2P = (x_3,y_3)$, where:
 In my system when I want to multiply a point $G$ by an integer $d$, 
 I take the point $G$ and double it $\lfloor log_2(d) \rfloor$ times, storing each new point in an array where index $i$ holds $2^i \cdot G$. 
 The final value is then calculated by adding the points in the array whose index corresponds to a $1$ in the binary expansion of $d$. 
-My system actually implements this using bitwise operations on $d$ for efficiency, 
-however it is more intuitive to imagine it as a binary expansion and an array of equal length as described. 
+In actuality, my system implements this using bitwise operations on $d$, for efficiency. 
+However, it is more intuitive to imagine it as a binary expansion and an array of equal length as described. 
 That is how I implement point multiplication using point addition and point doubling. 
-Things are complicated further however due to the fact that an elliptic curve is defined over a field of integers modulo $p$ (\ref{Elliptic Curve}), 
+Things are complicated further, since an elliptic curve is defined over a field of integers modulo $p$ (\ref{Elliptic Curve}), 
 meaning that these operations are all carried out in modulo $p$ and can only involve integers. 
 Since the equations for both point addition (\ref{Point Addition}) and point doubling (\ref{Point Doubling}) involve division, 
-it is clear that a naive implementation of division cannot be used here since it would produce non-integer results. 
-Therefore I implemented the Extended Euclidean algorithm (EEA) in order to ensure integer results of these division calculations. 
+a naive implementation of division cannot be used here since it would produce non-integer results. 
+Therefore I implemented the Extended Euclidean algorithm (EEA) to ensure integer results of these division calculations. 
 For example, in order to calculate the gradient $\lambda = \frac{y_2-y_1}{x_2-x_1}$ in point addition (\ref{Point Addition}), 
 I use the EEA to calculate $(x_2-x_1)^{-1}$ mod $p$ and then multiply this by $(y_2-y_1)$. 
 This ensures that $\lambda$ is an integer, and therefore that the coordinates $(x_3,y_3)$ as defined in \ref{Point Addition} 
@@ -394,24 +395,24 @@ The advantage of this is that Alice and Bob don't have to worry about agreeing u
 curve parameters before they can establish a shared key. 
 
 The elliptic curves available in my implementation must be publicly verifiable, this eliminates the concern of a backdoor or other intentional weakness in the curve \cite{bernstein2013safecurves}. 
-The four curves I chose to implement and test are: M-221, Curve25519, M-383, M-511. 
+The four curves I chose to implement and test are M-221, Curve25519, M-383, M-511. 
 These were chosen because their design processes are explainable, meaning they cannot have a backdoor. 
 They also have varying sizes of $n$ and $p$ (listed in ascending order), ensuring a variety of security and efficiency for comparative purposes (Figure \ref{fig:curves}). 
 It is important to note that M-221 is not recommended for production usage today, since its $n$ and $p$ are too small. 
-Therefore, my system uses Curve25519 by default, since it is the smallest and fastest of these curves which is still deemed secure today. 
+Therefore, my system uses Curve25519 by default, since it is the smallest and fastest of these curves still deemed secure today. 
 
 When each client instance is started, I generate the random private key for each client using Python's "secrets" module. 
 The public key is then calculated using the point multiplication function mentioned previously. 
-This public key is sent to the server along with the user's name (e.g. Alice) which they have entered via the command line. 
+This public key is sent to the server along with the user's name (e.g. Alice) which they have entered via the command-line. 
 Any other user (e.g. Bob) can then get Alice's public key from the server and establish a secret shared key with her. 
 In my system, Bob (or any other client) calculates their shared key with Alice by first asking the server 
 for any available public keys. 
 Bob then uses the point multiplication function to multiply Alice's public key by his private key. 
 The shared keys that each client has established with their contacts are stored locally, 
-hashed to 32 bytes, and used as 256 bit keys to encrypt future messages with the Advanced Encryption Standard (AES), a symmetric-key algorithm. 
+hashed to 32 bytes, and used as 256-bit keys to encrypt future messages with the Advanced Encryption Standard (AES), a symmetric-key algorithm. 
 
 \subsubsection{ECDSA} \noindent \label{ECDSA}
-The \emph{Elliptic Curve Digital Signature Algorithm} allows Alice to sign a message or file in such a way that Bob is able to then 
+The \emph{Elliptic Curve Digital Signature Algorithm} allows Alice to sign a message or file in such a way that Bob can then 
 verify that Alice must have been the sender and that the message/file has not been altered. 
 Alice does this by generating a signature using the hash of the message and her private key. 
 She then sends this to Bob alongside her message. 
@@ -458,13 +459,13 @@ In my implementation of this algorithm, Alice and Bob first agree upon all of th
 by default since again they are all hard-coded into every client. 
 The advantage of this is that Alice and Bob don't have to worry about agreeing upon all of these parameters before they generate and verify signatures. 
 
-When Alice wants to send a signed message or a file to Bob, she enters the message or the name of the file via the command line, 
+When Alice wants to send a signed message or a file to Bob, she enters the message or the name of the file via the command-line, 
 and generates a hash of the message/file using SHA-512 from Python's ``hashlib" module. 
 This hash is converted to an integer and truncated to be smaller than $n$, which means that this truncated hash $e$ is less than $n$. 
 A random number $k$ is then generated using the same ``secrets" module previously mentioned and the point $G$ is multiplied by $k$ using 
 the point multiplication function, with the x-coordinate taken as $r$ and the y-coordinate discarded. 
 The integer $r$ is multiplied by Alice's private key (also an integer) and added to the truncated hash of the message (another integer), 
-finally this is divided by $k$ to generate $s$. 
+finally, this is divided by $k$ to generate $s$. 
 This division is done by multiplying by the inverse of $k$ modulo $n$, calculated with the EEA function mentioned earlier. 
 Alice sends both $r$ and $s$ to the server, along with her AES encrypted message. 
 
@@ -481,7 +482,7 @@ The first point multiplication is $u_1 \cdot G$ where $G$ is the base point ment
 and the second is $u_2 \cdot Q_A$ where the point $Q_A$ is Alice's public key. 
 After adding these two points together using the point addition function to create a new point, 
 Bob takes just the x-coordinate of this new point and compares it to the $r$ from Alice's signature. 
-If these are equal (mod $n$) then the signature is valid and was definitely generated by Alice using the same message which Bob received. 
+If these are equal (mod $n$) then the signature is valid and was generated by Alice using the same message which Bob received. 
 So now Bob has the plaintext message and is assured that it is authentic. 
 
 
@@ -492,7 +493,7 @@ and its large number of well-established modules for computing generic cryptogra
 Since my system carries out operations involving huge integers, other less abstracted languages would 
 have required much more involvement at the lower level which would only detract from my progress with the actual aims of the project. 
 
-The system can be started and interacted with via a command line interface. 
+The system can be started and interacted with via a command-line interface. 
 This was chosen since it allowed me to focus 
 more on the protocols and back-end of the system rather than on designing a visually appealing graphical user interface (GUI). 
 A GUI was not relevant to the mathematical-based aims of this project. 
@@ -500,7 +501,7 @@ A GUI was not relevant to the mathematical-based aims of this project.
 The seven Python modules used in my system are (in alphabetical order): 
 ``base64", ``hashlib", ``os", ``PyCryptodome", ``Pyro4", ``secrets", and ``uuid". 
 Only two of these modules are not part of The Python Standard Library, and thus may require installation: ``PyCryptodome" and ``Pyro4". 
-To implement the functions that I use from these modules was either not possible within the time constraints, 
+Implementing the functions that I use from these modules was either not possible within the time constraints, 
 or would have consumed time better spent on other aspects of the project more pertinent to my objectives. 
 The server program only uses ``Pyro4" and ``uuid", whereas the client program uses every listed module apart from ``uuid" (six total). 
 
@@ -512,32 +513,32 @@ The ``Cipher" package from ``PyCryptodome" is used for encryption and decryption
 and the ``secrets" module is for generating secure random numbers. 
 In the server program, the ``uuid" module is used for generating unique identifiers of every communication. 
 
-Initially I used the ``random" module for random number generation, 
+Initially, I used the ``random" module for random number generation, 
 until I learned that this module is not cryptographically secure since it is only pseudo-random, so I switched to using ``secrets" instead. 
-My own attempt at implementing file management for users to send and receive files 
+My attempt at implementing file management for users to send and receive files 
 using the system encountered problems when running on different operating systems. 
 Therefore I decided to instead use the ``os" module, which can handle miscellaneous operating system interfaces. 
 This made the system far more portable since it was no longer operating system dependent. 
 
-I only used long standing and well used Python modules in order to avoid supply chain issues, 
+I only used long-standing and well used Python modules to avoid supply chain issues, 
 specifically the kind recently highlighted by Ducklin \citeyear{ducklin2021python}. 
 Fake Python packages with misleading names can be uploaded to PyPi, where users in a hurry might download and install them by mistake, 
 potentially infecting their project with malicious Python code. 
-This is clearly an issue for any Python project which relies upon external modules, let alone a security-based one such as this. 
+This is an issue for any Python project which relies upon external modules, let alone a security-based one such as this. 
 
 
 \subsection{Implementation Issues} \noindent \label{Implementation}
-After I successfully implemented client-client communication with separate instances of the client program running on the 
-same machine, I then attempted to adapt the system for use with the client instances on separate machines on the same network. 
+After I successfully implemented client-client communication with separate instances of the client program running on the same machine, 
+I then attempted to adapt the system for use with the client instances on separate machines on the same network. 
 However, I encountered issues with this due to the security protocols in place on networks. 
-I decided against attempting to circumvent this potentially complex and time consuming issue, 
-since network communication over the Internet is not strictly necessary for the purposes of this academic project, 
+I decided against attempting to circumvent this potentially complex and time-consuming issue 
+since network communication over the Internet is not strictly necessary for this academic project, 
 I am not aiming to replace Signal or WhatsApp. 
 
 
 \subsection{Verification and Validation} \noindent \label{Verification}
 This subsection will run through a real interaction between Alice and Bob using the system, 
-specifically the exchange shown in Figure \ref{fig:messages}. 
+specifically, the exchange shown in Figure \ref{fig:messages}. 
 This will demonstrate the calculations performed by the system and the validity of these calculations. 
 All large numbers here are shown in hexadecimal, for brevity. 
 This interaction uses an elliptic curve known as Curve25519 \cite{10.1007/11745853_14}, 
@@ -598,9 +599,9 @@ Bob's calculation of the shared key is:
 \end{equation}
 
 This demonstrates that the ECDH part of the system works, since Alice and Bob each calculate the same shared key ( Key (\ref{AliceKey}) = Key (\ref{BobKey}) ). 
-Critically, from a security perspective, only Alice and Bob can possibly know the value of this shared secret key 
+Critically, from a security perspective, only Alice and Bob can know the value of this shared secret key 
 because it was calculated using their respective private keys (which only they have access to). 
-This makes it suitable for use as a symmetric AES key for end-to-end-encrypted communication between Alice and Bob. 
+This makes it suitable for use as a symmetric AES key for end-to-end encrypted communication between Alice and Bob. 
 
 
 \subsubsection{Encryption} \noindent \label{Example1}
@@ -673,14 +674,14 @@ Bob calculates the x-coordinate of the point $v = (e \cdot s^{-1})G + (r \cdot s
 where $Q$ is Alice's public key. 
 
 Since this $v$ matches the $r$ in Alice's signature ($v=r$), 
-Bob is assured that Alice sent the message, and that the content of the message is unchanged, 
-since both Alice's private key, and the same hash must have been used to generate the signature. 
+Bob is assured that Alice sent the message and that its content is unchanged, 
+since both Alice's private key and the same hash must have been used to generate the signature. 
 
 \vspace{5mm}
 
 This demonstration both verifies and validates my system. 
 The fact that both Alice and Bob calculate the same shared key, (\ref{AliceKey}) and (\ref{BobKey}), 
-verifies and validates that the ECDH algorithm for key establishment has been implemented correctly in my system. 
+verifies and validates that the ECDH algorithm for shared key establishment has been implemented correctly in my system. 
 While the fact that Alice's $r$ generated in (\ref{AliceSig}) matches Bob's $v$ generated in (\ref{BobSig}) 
 verifies and validates that the ECDSA algorithm for both signature generation and verification has also been implemented correctly. 
 
@@ -716,13 +717,13 @@ Figure \ref{fig:rsa} illustrates that the time taken by my ECC system scales lin
 whereas the time taken by RSA scales exponentially. 
 The second point to make about these results is that the bottom graph in Figure \ref{fig:rsa} shows RSA up to a security strength of 112 bits, 
 which is today's minimum recommended level of security according to NIST \cite[p54-55]{barker2020recommendation}. 
-Even at today's minimum security level RSA takes nearly an order of magnitude longer than ECC to generate a key pair (0.82s v 0.096s here). 
+Even at today's minimum security level, RSA takes nearly an order of magnitude longer than ECC to generate a key pair (0.82s v 0.096s here). 
 It is also important to consider that, due to the nature of computer advancement, this minimum security level will only increase over time. 
 This means that the benefits of using ECC over RSA will also only increase over time, 
 for example when the recommended security level moves to 128 bits, the time difference will widen further. 
 In these results that difference is 4.9 seconds for RSA against 0.11 seconds for ECC. 
-In general this is the nature of comparing a $O(n^2)$ system with a $O(n)$ system. 
-ECC is faster than RSA today, and will get even faster (relatively) in the future. 
+In general, this is the nature of comparing a $O(n^2)$ system with a $O(n)$ system. 
+ECC is faster than RSA today and will get even faster (relatively) in the future. 
 
 \begin{figure}[!htb]
     \begin{minipage}{0.5\textwidth}
@@ -774,7 +775,7 @@ an attacker could use a timing attack to gain some information about the suppose
 In terms of my system, the secret value is the private key $d$ and the operation is the calculation of the public key $dG$, 
 in which the base point $G$ is multiplied by the private key $d$. 
 This operation is carried out by repeated doubling and adding of the base point $G$, until reaching $dG$. 
-If an attacker is able to isolate and time this operation, knowing that there was a correlation, 
+If an attacker can isolate and time this operation, knowing that there was a correlation, 
 they could infer information about the private key from measuring how long the operation took. 
 
 To check if my system leaked side-channel information in this way, 
@@ -831,22 +832,21 @@ Therefore, my system does not show a strong correlation between the key size and
 This section revisits the original objectives mentioned in the Introduction (Section I.\ref{Objectives}) and evaluates to what extent they were met. 
 It also discusses some strengths and limitations of the system (Section \ref{Strengths}), as well as the suitability of my approach (Section \ref{Approach}). 
 
-The creation of a working ECC system with a command line user interface capable of computing both key pair generation and ECDH key exchange satisfies the basic objectives mentioned earlier. 
-Additional capability of the system to carry out the ECDSA on both text messages and files, 
+The creation of a working ECC system with a command-line user interface capable of computing both key pair generation and ECDH key exchange satisfies the basic objectives mentioned earlier. 
+The additional capability of the system to carry out the ECDSA on both text messages and files, 
 as well as improvements to the security of the key generation process means that the intermediate objectives are also fulfilled. 
 Finally, improvements in the user interface in addition to analysis of the system in terms of both security and efficiency ensures that the advanced objectives are met. 
-
-Overall the objectives were mostly fulfilled, with the exception of the communication over a network issue mentioned earlier (Section III.\ref{Implementation}). 
+Overall the objectives were mostly fulfilled, except for the communication over a network issue mentioned earlier (Section III.\ref{Implementation}). 
 
 
 \subsection{Strengths and Limitations} \noindent \label{Strengths}
-Regarding Figure \ref{fig:number1s}, although this shows correlation between the number of $1$ bits in the binary expansion of the key 
+Regarding Figure \ref{fig:number1s}, although this shows a correlation between the number of $1$ bits in the binary expansion of the key 
 and the time taken, this is not a terminal problem for the system. 
 Even if an attacker could infer that the number of $1$ bits in the key was exactly $x$, 
 this still leaves the number of possible keys as $508 \choose x$. 
-The attacker's best case scenario here is for $x$ to be at either end of the x-axis in Figure \ref{fig:number1s}. 
+The attacker's best-case scenario here is for $x$ to be at either end of the x-axis in Figure \ref{fig:number1s}. 
 Suppose that in a rare case $x$ is known to be as low as $220$, this still gives $508 \choose 220$ $\approx 2^{497}$. 
-Therefore, the attacker has reduced the number of possible keys from $\sim 2^{508}$ to $\sim 2^{497}$ in a best case scenario for them. 
+Therefore, the attacker has reduced the number of possible keys from $\sim 2^{508}$ to $\sim 2^{497}$ in a best-case scenario for them. 
 This is certainly not a crippling issue for the system, but it is a slight limitation. 
 
 The minimum recommended security requirements for ECC key size today is 224 bits \cite[p54-55]{barker2020recommendation}. 
@@ -858,11 +858,11 @@ The fact that the system uses Curve25519 by default is a strength since it provi
 Another strength of the system is that it can be easily modified to use different elliptic curves, such as M-383 or M-511, which are slower but will still be deemed secure in the future. 
 
 Specifically, for 2031 and beyond the minimum security strength for encryption algorithms will move to 128 bits \cite[p59]{barker2020recommendation}. 
-For ECC this means 256 bit keys, and for RSA this would be 3072 bit keys. 
-So 2031 is when Curve25519 will no longer be used, while curves M-383 and M-511 will used for some time after this. 
+For ECC this means 256-bit keys, and for RSA this would be 3072-bit keys. 
+So 2031 is when Curve25519 will no longer be used, while curves M-383 and M-511 will be used for some time after this. 
 This timeline does not take into account if/when large-scale quantum computers will become available, 
 since this would/will require the usage of quantum-resistant algorithms. 
-Neither ECC nor RSA are quantum-resistant since they rely on the difficulty of the discrete logarithm problem, 
+Neither ECC nor RSA is quantum-resistant since they each rely on the difficulty of the discrete logarithm problem, 
 which can be easily solved using Shor's algorithm for polynomial-time integer factorisation on a quantum computer. 
 Therefore, a limitation of the system is that it will be made redundant by the availability of large-scale quantum computers. 
 
@@ -872,31 +872,31 @@ With hindsight, I am largely happy with my approach to the project, particularly
 This paved the way for excellent progress to be made throughout the development stage. 
 Whenever an issue was encountered, I had the time to research and find a solution rather than being forced to leave it and move on due to time constraints. 
 
-However, if given the opportunity to repeat the project, I might invest more time earlier on investigating ways to overcome the issue of communication over a network. 
+However, if I were to repeat the project, I might invest more time earlier on investigating ways to overcome the issue of communication over a network. 
 I instead chose to focus more on the ECC aspect of the project itself, as this seemed more pertinent to the overall aims of the project, the network communication was not as important as the ECC algorithms. 
 This meant that I had more time towards the end of the project to focus on the analysis of the system. 
 
 
 
 \section{Conclusions} \noindent
-The aim of this project was to implement an Elliptic Curve Cryptography system, 
-and to then analyse that system both in terms of efficiency and security. 
+This project aimed to implement an Elliptic Curve Cryptography system, 
+and then analyse that system both in terms of efficiency and security. 
 I was able to successfully do this. 
 
 \subsection{Implementation} \noindent
 The system I created allows for several users to establish a shared secret key using Elliptic Curve Diffie-Hellman key exchange. 
-They can then use this key to AES-encrypt either a text message or a file which is sent to another user via a server, using remote object invocation. 
-Since the server does not have access to this shared key, it cannot decrypt or read the message /file, making the whole process end-to-end encrypted. 
+They can then use this key to AES-encrypt either a text message or a file that is then sent to another user via a server, using remote object invocation. 
+Since the server does not have access to this shared key, it cannot decrypt or read the message/file, making the whole process end-to-end encrypted. 
 Messages and files are also accompanied by a digital signature, generated using the Elliptic Curve Digital Signature Algorithm. 
 This signature allows the recipient to verify the authenticity of the sender, meaning that if a bad actor intercepted and changed the content of the message/file, the recipient would be warned of this. 
 
 \subsection{Analysis}
 
 \subsubsection{Efficiency} \noindent
-There were two important efficiency findings, when comparing ECC to RSA, 
+There were two important efficiency findings when comparing ECC to RSA, 
 the first was that my ECC system scales linearly with increased security strength, 
 whereas an RSA system scales exponentially. 
-The other important comparative efficiency finding was that my ECC system is almost an order of magnitude faster than an RSA system at generating a key pair which satisfies today's minimum recommended security level. 
+The other important comparative efficiency finding was that my ECC system is almost an order of magnitude faster than an RSA system at generating a key pair that satisfies today's minimum recommended security level. 
 These two findings together give the overall result that ECC is more efficient than RSA today, 
 and this difference will grow exponentially in the future. 
 
@@ -908,8 +908,8 @@ Hence why my system uses Curve25519 by default since it has a $p \approx 2^{255}
 which is large enough to provide adequate security, yet small enough to enable fast computation. 
 
 \subsubsection{Security} \noindent
-The first result from security analysis of the system show that there is some correlation between the number of $1$ bits in the binary expansion of the private key and the time taken to generate the key pair. 
-However, even in an attacker's best case scenario when performing a timing attack, 
+The first result from the security analysis of the system shows that there is some correlation between the number of $1$ bits in the binary expansion of the private key and the time taken to generate the key pair. 
+However, even in an attacker's best-case scenario when performing a timing attack, 
 this does not provide a huge computational advantage. 
 The second result here is that there is no strong correlation between the size of the private key and the time taken to generate the key pair in practice. 
 This is because the underlying theoretical correlation is obscured by noise and/or natural variation, 
@@ -917,14 +917,14 @@ meaning that an attacker can gain no significant computational advantage from a 
 
 \subsection{Further Work} \noindent
 Overall, my system is fairly resistant to side-channel attacks such as timing attacks, 
-but a possible extension to the project in order to increase resistance to timing attacks would be to add a timing delay. 
+but a possible extension to increase the system's resistance to timing attacks would be to add a timing delay. 
 This timing delay would hide any correlation between properties of the private key and the time taken to compute the public key by ensuring a uniform time taken by the process. 
 The system would generate the key pair, and then wait until a given time had elapsed before returning the result. 
-The downside here would be that this given time must be greater than or equal to the worst-case scenario time taken by the system, if the goal is to obfuscate any and all correlation, making the system slower than it could be. 
+The downside here would be that this given time must be greater than or equal to the worst-case scenario time taken by the system, if the goal is to obfuscate any correlation, making the system slower than it could be. 
 However, the upside of this solution would be increased immunity to timing attacks since every calculation would take the same amount of time, so information could not be gained from measuring this time taken. 
 
+\vfill
 
 \bibliography{projectpaper}
-
 
 \end{document}
