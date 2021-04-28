@@ -4,13 +4,16 @@
 # python server.py
 # python client.py
 
-import Pyro4
-from Cryptodome.Cipher import AES
-import base64 # built in
-import hashlib # built in
-import secrets # built in
-import os
-import os.path # used for file sending
+# if need to install packages:
+# pip install Pyro4
+# pip install pycryptodomex
+
+import Pyro4 # may need installing, used for communication
+from Cryptodome.Cipher import AES # may need installing, used for AES encryption
+import base64 # built in, used to decode Base 64 
+import hashlib # built in, used for SHA hashing
+import secrets # built in, used for random number generation
+import os # built in, used for file and folder management
 
 def move(xa,ya,xb,yb):
     if xa is None:
@@ -46,7 +49,7 @@ def K(start,k): # calculate k*start
     return result
 
 def inverse(a,b):
-    # find b^{-1} mod a
+    # returns:  b^{-1} (mod a)
     if b < 0:
         return a - inverse(a,-b)
     r = {-1:a,0:b}
@@ -136,7 +139,7 @@ def sendMessage():
         hashed = hashlib.sha512(encoded)
         integer = int.from_bytes(hashed.digest(),'big')
         e = integer >> (integer.bit_length() - n.bit_length()) # hash of message, truncated
-        k = generator.randrange(n//2,n-1) # select random integer k in interval [1,n-1]
+        k = generator.randrange(1,n-1) # select random integer k in interval [1,n-1]
         r = K(g,k)[0] % n # compute x coordinate of kg mod n (g is base point), if r = 0, generate new k
         s = inverse(n,k)*(e+privateKey*r) % n # compute s = k^-1{e + privateKey(r)} mod n
         server.receiveMessage(recipient,name,nonce,ciphertext,tag,r,s) # encrypt here
@@ -208,7 +211,7 @@ def sendSignature(): # ECDSA algorithm
     message_hash = hashlib.sha512(message) # to ensure 512 bit hashes, so always larger than n when truncating
     integer = int.from_bytes(message_hash.digest(),'big') # hash value as an integer
     e = integer >> (integer.bit_length() - n.bit_length()) # hash of message, truncated to size of n
-    k = generator.randrange(n//2,n-1) # select random integer k in interval [1,n-1]. Demo why this breaks when k is constant
+    k = generator.randrange(1,n-1) # select random integer k in interval [1,n-1]. Demo why this breaks when k is constant
     r = K(g,k)[0] % n # compute x coordinate of kg mod n (g is base point), if r = 0, generate new k
     s = inverse(n,k)*(e+privateKey*r) % n # compute s = k^-1{e + privateKey(r)} mod n
     server.receiveSignature(name,r,s) # signature for message m is (r,s)
@@ -243,7 +246,6 @@ def checkSignature():
         [r,s] = signatures[person]
         publicKeys = server.sendKeys()
         publicKey = publicKeys[person] # obtain A's public key Q
-        # verify that r and s are integers in interval [1,n-1]
         message = b'Hello!' # simple test message, for signature verification
         message_hash = hashlib.sha512(message)
         integer = int.from_bytes(message_hash.digest(),'big') # compute hash of message h(m), as an integer
@@ -289,7 +291,7 @@ def sendFile():
                 keyChoice = '0'
         recipient = contacts[int(keyChoice)-1]
         fileName = ''
-        while not os.path.isfile(fileName):
+        while not os.path.isfile(fileName) or '/' in fileName: # only allow files in current folder
             fileName = input('Enter file name > ')
         key = hashlib.sha256(int.to_bytes(sharedKeys[recipient],32,'big')).digest() # convert shared ecc key to 32 bytes
         cipher = AES.new(key,AES.MODE_CBC)
@@ -300,7 +302,7 @@ def sendFile():
         encrypted = []
         fileNameBuffer = fileName
         if len(fileName) % 16 != 0:
-            fileNameBuffer += ' ' * (16-len(fileName)%16)
+            fileNameBuffer += ' ' * (16-len(fileName)%16) # pad file name to multiple of 16 for encryption
         nameEncrypted = cipher.encrypt(fileNameBuffer.encode('utf-8'))
         with open(fileName,'rb') as fin:
             while True:
@@ -321,7 +323,7 @@ def sendFile():
                 fb = f.read(BLOCK_SIZE)
         integer = int.from_bytes(file_hash.digest(),'big')
         e = integer >> (integer.bit_length() - n.bit_length()) # hash of message, truncated
-        k = generator.randrange(n//2,n-1) # select random integer k in interval [1,n-1]
+        k = generator.randrange(1,n-1) # select random integer k in interval [1,n-1]
         r = K(g,k)[0] % n # compute x coordinate of kg mod n (g is base point), if r = 0, generate new k
         s = inverse(n,k)*(e+privateKey*r) % n # compute s = k^-1{e + privateKey(r)} mod n
         server.receiveFile(recipient,name,nameEncrypted,nsz,encrypted,fsz,iv,r,s)
@@ -365,8 +367,7 @@ def checkFiles():
                     with open(os.path.join(name,plainName),'wb') as fout: # write in binary mode
                         for x in fileContent:
                             data = base64.b64decode(x['data'])
-                            #print(data)
-                            text = cipher.decrypt(data)#.decode()
+                            text = cipher.decrypt(data)
                             if fsz > len(text):
                                 fout.write(text)
                             else:
@@ -375,7 +376,6 @@ def checkFiles():
                     # signature check
                     publicKeys = server.sendKeys()
                     publicKey = publicKeys[sender] # obtain A's public key Q
-                    # verify that r and s are integers in interval [1,n-1]
                     BLOCK_SIZE = 251 # 251 bit chunks
                     file_hash = hashlib.sha512() # to ensure 512 bit hashes, so always larger than n when truncating
                     with open(os.path.join(name,plainName),'rb') as f:
@@ -411,17 +411,79 @@ def checkFiles():
                     print('Your shared key with {} is incorrect'.format(sender))
 
 if __name__ == "__main__":
-    # public parameters: p,a,b,g,n,h
 
-    # Curve25519
     # form = {0:'Short Weierstrass', 1:'Montgomery'}
-    form = 1 # by^2 = x^3 + ax^2 + x
-    p = 2**255 - 19 # prime, size of finite field
-    a = 486662 # coefficients of curve
-    b = 1 # coefficients of curve
-    g = (9,14781619447589544791020593568409986887264606134616475288964881837755586237401) # base point
-    n = 2**252 + 27742317777372353535851937790883648493 # (prime) order of subgroup
-    h = 2**3 # cofactor of subgroup, h = (number of points on curve / n)
+    # form = 0 means curve of form: y^2 = x^3 + ax + b
+    # form = 1 means curve of form: by^2 = x^3 + ax^2 + x
+
+    # curve parameters: p,a,b,g,n,h 
+    # p is prime, size of finite field
+    # a,b are coefficients of curve
+    # g is base point
+    # n is (prime) order of subgroup
+    # h is cofactor of subgroup, h = (number of points on curve / n)
+    
+    curve = 1 # decide which curve to use here (0-5)
+    # 0: M221
+    # 1: Curve25519
+    # 2: M383
+    # 3: M511
+    # 4: Example
+    # 5: secp192r1
+
+    if curve == 0: # M221
+        form = 1
+        p = 2**221 - 3
+        a = 117050
+        b = 1
+        g = (4,1630203008552496124843674615123983630541969261591546559209027208557)
+        n = 2**218 + 438651314700378199859927091142747
+        h = 2**3
+
+    if curve == 1: # Curve25519
+        form = 1
+        p = 2**255 - 19
+        a = 486662
+        b = 1
+        g = (9,14781619447589544791020593568409986887264606134616475288964881837755586237401)
+        n = 2**252 + 27742317777372353535851937790883648493
+        h = 2**3
+
+    if curve == 2: # M383
+        form = 1
+        p = 2**383 - 187
+        a = 2065150
+        b = 1
+        g = (12,4737623401891753997660546300375902576839617167257703725630389791524463565757299203154901655432096558642117242906494)
+        n = 2**380 + 166236275931373516105219794935542153308039234455761613271
+        h = 2**3
+
+    if curve == 3: # M511
+        form = 1
+        p = 2**511 - 187
+        a = 530438
+        b = 1
+        g = (5,2500410645565072423368981149139213252211568685173608590070979264248275228603899706950518127817176591878667784247582124505430745177116625808811349787373477)
+        n = 2**508 + 10724754759635747624044531514068121842070756627434833028965540808827675062043
+        h = 2**3
+    
+    if curve == 4: # small example
+        form = 0
+        p = 17
+        a = 0
+        b = 7
+        g = (15,13)
+        n = 18
+        h = 1
+    
+    if curve == 5: # secp192r1
+        form = 0
+        p = 6277101735386680763835789423207666416083908700390324961279
+        a = 6277101735386680763835789423207666416083908700390324961276
+        b = 2455155546008943817740293915197451784769108058161191238065
+        g = (602046282375688656758213480587526111916698976636884684818, 174050332293622031404857552280219410364023488927386650641)
+        n = 6277101735386680763835789423176059013767194773182842284081
+        h = 1
     
     server = Pyro4.Proxy("PYRONAME:server")
     name = ''
@@ -430,7 +492,7 @@ if __name__ == "__main__":
         name = input('What is your name? > ').strip()
     sharedKeys = {}
     generator = secrets.SystemRandom()
-    privateKey = generator.randrange(n//2,n-1) # {1,...,n-1} where n is the order of the subgroup
+    privateKey = generator.randrange(1,n-1) # private key is random number between 1 and n-1 inclusive, where n is the order of the subgroup
     publicKey = K(g,privateKey)
     server.receiveKey(name,publicKey)
     
@@ -483,33 +545,4 @@ q. Quit
             else:
                 validChoice = False
 
-# implement ephemeral Diffie Hellman
-
-# use user delay in future development?
-# Design your own random number algorithm based on e.g. user delay on inputs.
-# How many random bits do you need? How long will it take.
-
 # sign two files with same key and same k, then calculate private key and sign third document with it, ie demo breaking ECDSA like Sony
-
-# also look at what specifically the secrets module uses to generate randomness
-
-# clear up code a bit, parameterise more and use better variable names
-# change aes type for message sending?
-
-# timing attacks, how many 1s and most significant 1 in binary
-# run with different key size settings and see how long it takes to do calculations
-
-'''
-presentation is 10 minutes
-about how well you communicate not how good your project is
-explain whar your project is, what you've done so far and what you have left to do
-don't use too much technical language
-give intuitive definitions, only define ECDLP, not also ECDHP
-7 slides max, gives 1 min 25 secs per slide
-say that various things make curve safe, here they are but I don't have time to go through them, maybe most intuitive one
-relating to RSA is good since can assume audience knowledge of RSA
-talk about the need for ECC as more mobile devices need encryption and ECC is faster and easier, less computing power
-add an RSA scheme to the timing graph to compare efficiency, for equivalent key sizes
-Fill empty white space on deliverables slide with screenshots or examples from different stages of progress? not marked so maybe not
-Flesh out last 2 slides and organise thoughts more.
-'''

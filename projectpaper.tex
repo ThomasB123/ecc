@@ -5,12 +5,12 @@
 \usepackage{harvard}
 \usepackage{graphicx}
 
+\let\oldthebibliography\thebibliography\renewcommand\thebibliography[1]{\oldthebibliography{#1}
+\setlength{\parskip}{1pt}
+\setlength{\itemsep}{2pt}}
+
 \citationmode{abbr}
 \bibliographystyle{agsm}
-
-\let\oldthebibliography\thebibliography\renewcommand\thebibliography[1]{\oldthebibliography{#1}
-\setlength{\parskip}{0pt}
-\setlength{\itemsep}{0pt plus 0.3ex}}
 
 \title{Implementation and Analysis of an Elliptic Curve Cryptography System}
 \student{T. Butterfield}
@@ -29,7 +29,7 @@
     \paragraph{Context/Background} -
     Diffie and Hellman invented the idea of establishing a secret shared key using a public channel, and 
     RSA was the first implementation of this idea. 
-    Elliptic Curve Cryptography (ECC) is a more efficient version of RSA, requiring both smaller keys and less computation to achieve the same security level, meaning it is well-suited for use in the ever-expanding range of devices making encrypted communications. 
+    Elliptic Curve Cryptography (ECC) is more efficient than RSA, requiring both smaller keys and less computation to achieve the same security level, meaning it is well-suited for use in the ever-expanding range of devices making encrypted communications. 
     
     \vspace{-5mm}
     \paragraph{Aims} -
@@ -56,12 +56,13 @@
 
 
 \begin{keywords}
-Cryptography, Encryption, Elliptic Curve Cryptography (ECC), Elliptic Curve Diffie-Hellman (ECDH), 
+Authentication, Cryptography, Encryption, Security, Elliptic Curve Cryptography (ECC), Elliptic Curve Diffie-Hellman (ECDH), 
 Elliptic Curve Digital Signature Algorithm (ECDSA)
 \end{keywords}
 
 
-\section{Introduction} \noindent
+\section{Introduction}
+
 \subsection{Background} \noindent
 Any cryptography system tries to solve two kinds of security problems: privacy and authentication. 
 Imagine that Alice and Bob are trying to communicate, while Eve, the eavesdropper, intercepts and tries to read their messages. 
@@ -131,7 +132,7 @@ After meeting the basic and intermediate objectives, the system had been impleme
 so the focus then moved to analysing the system, as set out in the advanced objectives. 
 The results of this analysis showed that the time taken by my system to generate key pairs scales linearly with curve and key size, and that side-channel attacks, such as timing attacks, on my system provide very little computational advantage to an attacker. 
 
-Due to the complexity of elliptic curve cryptography, the creation of the system itself was a major result, while the other results came from testing and analysing the system to ensure it worked as intended and was both efficient and secure. 
+Due to the complexity of elliptic curve cryptography, the creation of the system itself was a major result, while the other major results came from testing and analysing the system to ensure it worked as intended and was both efficient and secure. 
 
 
 \section{Related Work} \noindent
@@ -203,7 +204,7 @@ Therefore, these sources were frequently referred to when I was implementing the
 \subsection{Attacks} \noindent
 There are many different elliptic curve schemes which can be used in an ECC system, 
 and the definition of a particular scheme includes the equation of the curve itself, 
-as well as a point while lies on the curve, known as the base point $G$. 
+as well as a point which lies on the curve, known as the base point $G$. 
 When using an ECC system, every user has a pair of keys $(d,Q)$ consisting of a private key $d$ and a public key $Q$. 
 A user's private key is just a randomly generated number that is kept secret and never shared with anyone. 
 The user's public key is calculated by multiplying the curve's base point $G$ by their private key $d$, so the public key is $Q = d \cdot G = dG$. 
@@ -213,7 +214,9 @@ However, the strength of ECC comes from the fact that it is infeasible for an at
 This problem of finding the multiplicand $d$, given the product point $dG$ and the original point $G$, 
 is known as the elliptic curve discrete logarithm problem (ECDLP). 
 
-The elliptic curve parameters for cryptographic schemes should be carefully chosen in order to resist all known attacks on the ECDLP. 
+The minimum recommended security strength today is 112 bits \cite{barker2020recommendation}, 
+meaning that $2^{112}$ steps of computation is regarded as infeasible. 
+The elliptic curve parameters for cryptographic schemes should be carefully chosen in order to resist all known attacks on the ECDLP which reduce its difficulty. 
 Two of these attacks are described here, along with the elliptic curve parameter choices necessitated by their existence. 
 
 \subsubsection{Exhaustive Search} \noindent \label{Exhaustive Search}
@@ -222,23 +225,23 @@ $G,2G,3G,4G,...$ until $Q$ is encountered, where $Q$ is the user's public key.
 The running time for this approach is approximately $n$ steps in the worst case and $n/2$ steps on average, 
 where $n$ is a property of the curve. 
 Therefore, exhaustive search can be circumvented by selecting elliptic curve parameters with $n$ sufficiently 
-large to represent an infeasible amount of computation (e.g. $n \geq 2^{224}$) \cite{hankerson2003guide}. 
+large to represent an infeasible amount of computation, e.g. $n > 2^{113}$ ensures 112-bit security (since $\frac{2^{113}}{2} = 2^{112}$) \cite{hankerson2003guide}. 
 
 \subsubsection{Pohlig-Hellman and Pollard's rho algorithm} \noindent \label{Pohlig-Hellman and Pollard's rho algorithm}
 The best general-purpose attack known on the ECDLP is the combination of the Pohlig-Hellman algorithm and Pollard's rho algorithm, 
 which has a fully-exponential running time of $O( \sqrt p \,)$, where $p$ is the largest prime divisor of $n$. 
 To resist this attack, the elliptic curve parameters should be chosen so that $n$ is divisible by a prime number $p$ sufficiently large 
-so that $\sqrt p$ steps is an infeasible amount of computation (e.g. $p > 2^{227}$). 
+so that $\sqrt p$ steps is an infeasible amount of computation, e.g. $p > 2^{227}$ ensures 112-bit security (since $\sqrt{2^{227}} > 2^{112}$). 
 
-\vspace{1mm}
+\vspace{2mm}
 
 Both these attacks can be thwarted by simply choosing sufficiently large elliptic curve parameters. 
-Therefore, my implementation will only use curves which have $n \geq 2^{224}$ and $p > 2^{227}$. 
+Therefore, my implementation will only use curves which have $n > 2^{113}$ and $p > 2^{227}$. 
 This ensures that my system's ECDLP is infeasible, given the state of today's computer technology \cite{hankerson2003guide}, 
 making my system theoretically secure. 
 
 \subsection{Implementation Issues} \noindent
-The intractibility of the ECDLP ensures the theoretical security of ECC, 
+The intractability of the ECDLP ensures the theoretical security of ECC, 
 as long as the algorithms are implemented properly. 
 However, if the core functions are incorrectly implemented then the system can be insecure regardless of curve parameter choices, 
 as was demonstrated by Hotz \citeyear{hotz2010console}. 
@@ -404,8 +407,8 @@ Any other user (e.g. Bob) can then get Alice's public key from the server and es
 In my system, Bob (or any other client) calculates their shared key with Alice by first asking the server 
 for any available public keys. 
 Bob then uses the point multiplication function to multiply Alice's public key by his private key. 
-The shared keys that each client has established with their contacts are stored locally 
-and used to encrypt future messages with the Advanced Encryption Standard (AES), a symmetric-key algorithm. 
+The shared keys that each client has established with their contacts are stored locally, 
+hashed to 32 bytes, and used as 256 bit keys to encrypt future messages with the Advanced Encryption Standard (AES), a symmetric-key algorithm. 
 
 \subsubsection{ECDSA} \noindent \label{ECDSA}
 The \emph{Elliptic Curve Digital Signature Algorithm} allows Alice to sign a message or file in such a way that Bob is able to then 
@@ -452,7 +455,7 @@ For Bob to authenticate Alice's signature, Bob must have Alice's public key $Q_A
 \vspace{5mm}
 
 In my implementation of this algorithm, Alice and Bob first agree upon all of the same initial curve parameters mentioned in Section \ref{ECDH} 
-by default since again they are all hard-coded in to every client. 
+by default since again they are all hard-coded into every client. 
 The advantage of this is that Alice and Bob don't have to worry about agreeing upon all of these parameters before they generate and verify signatures. 
 
 When Alice wants to send a signed message or a file to Bob, she enters the message or the name of the file via the command line, 
@@ -510,7 +513,7 @@ and the ``secrets" module is for generating secure random numbers.
 In the server program, the ``uuid" module is used for generating unique identifiers of every communication. 
 
 Initially I used the ``random" module for random number generation, 
-until I learned that this module is not cryptographically secure so I switched to using ``secrets" instead. 
+until I learned that this module is not cryptographically secure since it is only pseudo-random, so I switched to using ``secrets" instead. 
 My own attempt at implementing file management for users to send and receive files 
 using the system encountered problems when running on different operating systems. 
 Therefore I decided to instead use the ``os" module, which can handle miscellaneous operating system interfaces. 
@@ -693,7 +696,7 @@ All tests were carried out using a machine with an AMD Ryzen 5 3600 processor (3
 
 \subsection{Efficiency} \noindent \label{Efficiency}
 Perhaps the most significant claimed benefit of using ECC is its superior efficiency over RSA. 
-Therefore I start here with a timing comparison between my ECC system and an RSA implementation 
+Therefore, I start here with a timing comparison between my ECC system and an RSA implementation 
 from the ``PublicKey" package of the ``PyCryptodome" library. 
 Specifically, the operation being timed here is the generation of a key pair, meaning both private and public key generation, 
 of varying security strength. 
@@ -746,7 +749,7 @@ the speed of this increase (the gradient of the line) is greater for some curves
 These differences can be explained by the properties of each curve. 
 Recall from Section III.\ref{Elliptic Curve} that an elliptic curve is defined over a finite field modulo $p$. 
 This means that if the calculation of a coordinate produces a result greater than $p$, $p$ is subtracted from this result to produce a much smaller number. 
-Therefore no point can have an x or y-coordinate greater than $p$. 
+Therefore, no point can have an x or y-coordinate greater than $p$. 
 If a curve is defined to have a larger $p$, the points on the curve can have larger coordinates, 
 so calculations involving these points will take longer. 
 This explains the differences in gradients of the 4 lines in Figure \ref{fig:curves}, 
@@ -816,7 +819,7 @@ but that is over the entire range of key sizes 0 to 508.
 Since here in Figure \ref{fig:logkey} the private key is randomly chosen from the range $[1-n]$ where $n \approx 2^{508}$, 
 the most common key size is 508 bits ($2^{507}-2^{508}$), with half as many keys for every bit decrease. 
 This explains both why the spread of points in Figure \ref{fig:logkey} is so concentrated on the right side, 
-and why the number of points in each interval approximately halves moving from left to right. 
+and why the number of points in each interval approximately halves moving from right to left. 
 This is representative of how the system performs in practice. 
 The relatively small variation in both axes of Figure \ref{fig:logkey} means that random error (noise or natural variation) 
 plays a much more significant role in the timing results and obscures the underlying positive correlation between key size and time taken. 
@@ -828,8 +831,7 @@ Therefore, my system does not show a strong correlation between the key size and
 This section revisits the original objectives mentioned in the Introduction (Section I.\ref{Objectives}) and evaluates to what extent they were met. 
 It also discusses some strengths and limitations of the system (Section \ref{Strengths}), as well as the suitability of my approach (Section \ref{Approach}). 
 
-The creation of a working ECC system with a command line user interface satisfies, 
-capable of computing both key pair generation and ECDH key exchange satisfies the basic objectives mentioned earlier. 
+The creation of a working ECC system with a command line user interface capable of computing both key pair generation and ECDH key exchange satisfies the basic objectives mentioned earlier. 
 Additional capability of the system to carry out the ECDSA on both text messages and files, 
 as well as improvements to the security of the key generation process means that the intermediate objectives are also fulfilled. 
 Finally, improvements in the user interface in addition to analysis of the system in terms of both security and efficiency ensures that the advanced objectives are met. 
@@ -866,20 +868,19 @@ Therefore, a limitation of the system is that it will be made redundant by the a
 
 
 \subsection{Approach} \noindent \label{Approach}
-Generally, my approach to the project was very suitable, particularly with regards to the large amount of time and effort spent developing the system early on. 
+With hindsight, I am largely happy with my approach to the project, particularly with regards to the large amount of time and effort spent developing the system early on. 
 This paved the way for excellent progress to be made throughout the development stage. 
 Whenever an issue was encountered, I had the time to research and find a solution rather than being forced to leave it and move on due to time constraints. 
 
-However, if given the opportunity to repeat the project, I would invest more time earlier on investigating ways to overcome the issue of communication over a network. 
+However, if given the opportunity to repeat the project, I might invest more time earlier on investigating ways to overcome the issue of communication over a network. 
 I instead chose to focus more on the ECC aspect of the project itself, as this seemed more pertinent to the overall aims of the project, the network communication was not as important as the ECC algorithms. 
-This meant that I had more time towards the end of the project to focus on the analysis of the system, 
-but perhaps this time would have been better spent earlier on to find a solution to the network communication problem. 
+This meant that I had more time towards the end of the project to focus on the analysis of the system. 
 
 
 
 \section{Conclusions} \noindent
 The aim of this project was to implement an Elliptic Curve Cryptography system, 
-and to then analyse that system. 
+and to then analyse that system both in terms of efficiency and security. 
 I was able to successfully do this. 
 
 \subsection{Implementation} \noindent
@@ -889,8 +890,7 @@ Since the server does not have access to this shared key, it cannot decrypt or r
 Messages and files are also accompanied by a digital signature, generated using the Elliptic Curve Digital Signature Algorithm. 
 This signature allows the recipient to verify the authenticity of the sender, meaning that if a bad actor intercepted and changed the content of the message/file, the recipient would be warned of this. 
 
-\subsection{Analysis} \noindent
-I was also able to analyse the system both in terms of efficiency and security. 
+\subsection{Analysis}
 
 \subsubsection{Efficiency} \noindent
 There were two important efficiency findings, when comparing ECC to RSA, 
@@ -916,12 +916,12 @@ This is because the underlying theoretical correlation is obscured by noise and/
 meaning that an attacker can gain no significant computational advantage from a timing attack. 
 
 \subsection{Further Work} \noindent
-Overall my system is fairly resistant to side-channel attacks such as timing attacks, 
+Overall, my system is fairly resistant to side-channel attacks such as timing attacks, 
 but a possible extension to the project in order to increase resistance to timing attacks would be to add a timing delay. 
 This timing delay would hide any correlation between properties of the private key and the time taken to compute the public key by ensuring a uniform time taken by the process. 
 The system would generate the key pair, and then wait until a given time had elapsed before returning the result. 
 The downside here would be that this given time must be greater than or equal to the worst-case scenario time taken by the system, if the goal is to obfuscate any and all correlation, making the system slower than it could be. 
-However, the upside of this solution would be complete immunity to timing attacks since every calculation would take the same amount of time, so no information could be gained from measuring this time taken. 
+However, the upside of this solution would be increased immunity to timing attacks since every calculation would take the same amount of time, so information could not be gained from measuring this time taken. 
 
 
 \bibliography{projectpaper}

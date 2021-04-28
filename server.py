@@ -71,23 +71,3 @@ if __name__ == "__main__":
     files = {}
     print("Ready.")
     daemon.requestLoop() # start the event loop of the server to wait for calls
-    
-# client = Pyro4.Proxy('PYRONAME:name')
-# if want to do a check alive thing
-
-'''
-table: user ID, name, recepient, key
-002, Bob, Alice, ...
-
-Alice checks periodically for requests for communication with her
-
-table: user ID, name, public key
-for checking signatures later
-
-flow chart diagram for message sequence. Alice, Server, Bob
-do a message exchange diagram
-check if Alice is online e.g.
-ECDH, change key for every communication, look up protocol
-
-This is end to end encryption, the server should not be able to read messages
-'''
