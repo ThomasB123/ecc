@@ -66,7 +66,7 @@ def inverse(a,b):
     return t[i-1]%a
 
 def newContact():
-    publicKeys = server.sendKeys()
+    publicKeys = server.sendKeys(name)
     if publicKeys == {} or len(publicKeys) == 1:
         print('Nobody is currently available')
     else:
@@ -144,7 +144,7 @@ def sendMessage():
         s = inverse(n,k)*(e+privateKey*r) % n # compute s = k^-1{e + privateKey(r)} mod n
         server.receiveMessage(recipient,name,nonce,ciphertext,tag,r,s) # encrypt here
         if verbose:
-            print('Use shared key to encrypt your message to {}'.format(recipient))
+            print('Using shared key to encrypt your message to {}'.format(recipient))
             print('Truncated hash of message: e = 0x{:x}'.format(e))
             print('Select random k, calculate r = kG = 0x{:x}'.format(r))
             print('s = (e+key*r)/k = 0x{:x}'.format(s))
@@ -175,7 +175,7 @@ def checkMessages():
                     cipher.verify(tag)
                     r = i[5]
                     s = i[6]
-                    publicKeys = server.sendKeys()
+                    publicKeys = server.sendKeys(None)
                     publicKey = publicKeys[sender] # obtain A's public key Q
                     # verify that r and s are integers in interval [1,n-1]
                     w = inverse(n,s) # compute w = s^-1 mod n
@@ -202,6 +202,7 @@ def checkMessages():
                         print('{} says {}, and the signature is authentic'.format(sender,plaintext))
                     else:
                         print('{} says {}, but the signature is not authentic'.format(sender,plaintext))
+                    print()
                     server.deleteMessage(i[0]) # delete message from server once read, regardless of signature verification
                 except ValueError:
                     print('Your shared key with {} is incorrect'.format(sender))
@@ -216,6 +217,7 @@ def sendSignature(): # ECDSA algorithm
     s = inverse(n,k)*(e+privateKey*r) % n # compute s = k^-1{e + privateKey(r)} mod n
     server.receiveSignature(name,r,s) # signature for message m is (r,s)
     if verbose:
+        print('Using generic message: Hello!')
         print('Truncated hash of message: e = 0x{:x}'.format(e))
         print('Select random k, calculate r = kG = 0x{:x}'.format(r))
         print('s = (e+key*r)/k = 0x{:x}'.format(s))
@@ -223,7 +225,7 @@ def sendSignature(): # ECDSA algorithm
     print('Signature sent.')
 
 def checkSignature():
-    signatures = server.sendSignatures()
+    signatures = server.sendSignatures(name)
     if signatures == {} or (len(signatures) == 1 and name in signatures):
         print('There are no signatures to check')
     else:
@@ -244,7 +246,7 @@ def checkSignature():
                 keyChoice = '0'
         person = people[int(keyChoice)-1]
         [r,s] = signatures[person]
-        publicKeys = server.sendKeys()
+        publicKeys = server.sendKeys(None)
         publicKey = publicKeys[person] # obtain A's public key Q
         message = b'Hello!' # simple test message, for signature verification
         message_hash = hashlib.sha512(message)
@@ -374,7 +376,7 @@ def checkFiles():
                                 fout.write(text[:fsz]) # remove padding on last block
                             fsz -= len(text)
                     # signature check
-                    publicKeys = server.sendKeys()
+                    publicKeys = server.sendKeys(None)
                     publicKey = publicKeys[sender] # obtain A's public key Q
                     BLOCK_SIZE = 251 # 251 bit chunks
                     file_hash = hashlib.sha512() # to ensure 512 bit hashes, so always larger than n when truncating
@@ -406,6 +408,7 @@ def checkFiles():
                         print('{} sent you a file called {}, and the signature is authentic'.format(sender,plainName))
                     else:
                         print('{} sent you a file called {}, but the signature is not authentic'.format(sender,plainName))
+                    print()
                     server.deleteFile(i[0])
                 except:
                     print('Your shared key with {} is incorrect'.format(sender))
@@ -493,8 +496,15 @@ if __name__ == "__main__":
     sharedKeys = {}
     generator = secrets.SystemRandom()
     privateKey = generator.randrange(1,n-1) # private key is random number between 1 and n-1 inclusive, where n is the order of the subgroup
+    print()
+    print('Your private key is d = 0x{:x}. Keep this secret!'.format(privateKey))
+    print('Calculating your public key Q = d * G')
+    print('The curve\'s base point is G = (0x{:x}, 0x{:x})'.format(g[0],g[1]))
     publicKey = K(g,privateKey)
+    print('Your public key is Q = (0x{:x}, 0x{:x})'.format(publicKey[0],publicKey[1]))
+    print('Sending your public key to the server...')
     server.receiveKey(name,publicKey)
+    print('Sent.')
     
     while True:
 
@@ -508,7 +518,8 @@ What would you like to do {}?
 6. Check for messages
 7. Send a file
 8. Check for files
-9. Toggle verbose mode
+9. Show curve parameters
+v. Verbose mode (on/off)
 q. Quit
         '''.format(name))
 
@@ -533,16 +544,24 @@ q. Quit
             elif choice == '8':
                 checkFiles()
             elif choice == '9':
+                print()
+                print('Curve name: Curve25519')
+                print('Curve equation: y^2 = x^3 + 486662x^2 + x (mod p)')
+                print('Size of finite field: p = 2^255 - 19')
+                print('Base point: G = (9, 14781619447589544791020593568409986887264606134616475288964881837755586237401)')
+                print('Order of subgroup: n = 2^252 + 27742317777372353535851937790883648493')
+                print('Cofactor of subgroup: h = 8')
+            elif choice == 'v' or choice == 'V':
+                print()
                 if verbose:
                     verbose = False
                     print('Verbose mode off')
                 else:
                     verbose = True
                     print('Verbose mode on')
+            
             elif choice == 'q' or choice == 'Q':
                 print('Goodbye', name)
                 quit()
             else:
                 validChoice = False
-
-# sign two files with same key and same k, then calculate private key and sign third document with it, ie demo breaking ECDSA like Sony

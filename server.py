@@ -12,15 +12,23 @@ class server(object):
     
     def receiveKey(self,name,key):
         keys[name] = key
-        print(keys)
+        print()
+        print('New public key received from {}: (0x{:x}, 0x{:x})'.format(name,key[0],key[1]))
 
-    def sendKeys(self):
+    def sendKeys(self,name):
+        if name != None:
+            print()
+            print('Sending list of public keys to {}'.format(name))
         return keys
 
     def receiveMessage(self,to,from_,nonce,ciphertext,tag,r,s): # recipient, sender, content
         x = uuid.uuid1() # unique identifier of message
         messages[x.hex] = [to,from_,nonce,ciphertext,tag,r,s]
-        print(messages)
+        print()
+        print('Received new message from {} to {}'.format(from_,to))
+        print('Nonce (base64): {}'.format(nonce['data']))
+        print('Ciphertext (base64): {}'.format(ciphertext['data']))
+        print('Signature pair (r,s): (0x{:x}, 0x{:x})'.format(r,s))
 
     def checkMessages(self,to):
         out = []
@@ -30,6 +38,13 @@ class server(object):
                 for x in messages[i][1:]: # add all parts except 'to'
                     add.append(x)
                 out.append(add)
+        print()
+        if len(out) == 0:
+            print('There are no messages for {}'.format(to))
+        if len(out) == 1:
+            print('There is 1 message for {}'.format(to))
+        if len(out) > 1:
+            print('There are {} messages for {}'.format(len(out),to))
         return out
 
     def deleteMessage(self,x):
@@ -37,14 +52,23 @@ class server(object):
     
     def receiveSignature(self,from_,r,s):
         signatures[from_] = [r,s]
+        print()
+        print('Received new signature from {}'.format(from_))
+        print('Signature pair (r,s): (0x{:x}, 0x{:x})'.format(r,s))
 
-    def sendSignatures(self):
+    def sendSignatures(self,name):
+        print()
+        print('Sending list of signatures to {}'.format(name))
         return signatures
     
     def receiveFile(self,to,from_,nameEncrypted,nsz,encrypted,fsz,iv,r,s):
         x = uuid.uuid1()
         files[x.hex] = [to,from_,nameEncrypted,nsz,encrypted,fsz,iv,r,s]
-        print(files)
+        print()
+        print('Received new file from {} to {}'.format(from_,to))
+        print('Encrypted file name (base64): {}'.format(nameEncrypted['data']))
+        print('Encrypted file data (base64), packet 1 of {}: {}'.format(len(encrypted),encrypted[0]['data']))
+        print('Signature pair (r,s): (0x{:x}, 0x{:x})'.format(r,s))
     
     def sendFiles(self,to):
         out = []
@@ -54,6 +78,13 @@ class server(object):
                 for x in files[i][1:]:
                     add.append(x)
                 out.append(add)
+        print()
+        if len(out) == 0:
+            print('There are no files for {}'.format(to))
+        if len(out) == 1:
+            print('There is 1 file for {}'.format(to))
+        if len(out) > 1:
+            print('There are {} files for {}'.format(len(out),to))
         return out
     
     def deleteFile(self,x):
